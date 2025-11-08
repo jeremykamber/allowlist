@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Allowlist</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="header-title">Allowlist</h1>
+      <label class="switch">
+        <input type="checkbox" id="enabled-toggle" />
+        <span class="slider"></span>
+      </label>
+      <!-- <button id="open-settings" class="icon-btn" title="Settings">⚙️</button> -->
+    </header>
+
+    <!-- Main Content -->
+    <div class="content">
+      <!-- Allowlist Selector -->
+      <div class="list-selector-section">
+        <label class="list-label">Active List</label>
+        <div class="list-selector-wrapper">
+          <select id="list-select" class="list-select"></select>
+          <button id="new-list-btn" class="new-list-btn" title="Create new list">+</button>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button id="quick-add-site" class="btn primary small">+ Current Site</button>
+        <button id="quick-add-domain" class="btn secondary small">+ Current Domain</button>
+      </div>
+
+      <!-- Add Entry -->
+      <div class="add-entry">
+        <div class="input-chip" id="type-chip">Type</div>
+        <input id="add-input" type="text" placeholder="Add domain or URL" class="add-input" />
+        <button id="add-btn" class="btn primary small">Add</button>
+      </div>
+
+      <!-- Entries List -->
+      <ul id="entries" class="entries-list"></ul>
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-icon">✨</div>
+        <div class="empty-text">No sites yet</div>
+        <div class="empty-sub">Add your first allowed site</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div id="add-choice" class="modal hidden">
+    <div class="modal-bg"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Add to which list?</div>
+        <button class="modal-close" id="choice-cancel-x">✕</button>
+      </div>
+      <div style="display: flex; gap: 8px; flex-direction: column;">
+        <button id="choice-update" class="btn primary full">Current list</button>
+        <button id="choice-new" class="btn secondary full">New list</button>
+        <button id="choice-cancel" class="btn ghost full">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="edit-entry-modal" class="modal hidden">
+    <div class="modal-bg"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Edit Entry</div>
+        <button class="modal-close" id="edit-entry-close">✕</button>
+      </div>
+      <div style="display: flex; gap: 12px; flex-direction: column;">
+        <div>
+          <label
+            style="display: block; font-size: 12px; color: var(--fg-secondary); font-weight: 600; margin-bottom: 8px;">Value</label>
+          <input id="edit-entry-value" type="text"
+            style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 13px; font-family: 'Monaco', 'Courier New', monospace;">
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button id="edit-entry-save" class="btn primary" style="flex: 1;">Save</button>
+          <button id="edit-entry-cancel" class="btn ghost" style="flex: 1;">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <template id="entry-tpl">
+    <li class="entry-item">
+      <span class="entry-type"></span>
+      <span class="entry-value"></span>
+      <span class="entry-spacer"></span>
+      <button class="entry-edit" title="Edit">✎</button>
+      <button class="entry-copy" title="Copy">📋</button>
+      <button class="entry-delete" title="Delete">✕</button>
+    </li>
+  </template>
+
+  <script type="module" src="popup.js"></script>
+</body>
+
+</html>

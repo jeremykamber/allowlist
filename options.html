@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Allowlist - Settings</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #fafbfc;
+        --panel: #ffffff;
+        --fg: #1a2332;
+        --muted: #738394;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --accent-light: #eff6ff;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --border: #e5e7eb;
+        --shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+        --radius: 12px;
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      .header {
+        margin-bottom: 40px;
+        text-align: center;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 15px;
+        margin: 0;
+        font-weight: 500;
+      }
+
+      .section {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+      }
+
+      .section:hover {
+        box-shadow: var(--shadow);
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 18px;
+        color: var(--fg);
+        letter-spacing: -0.3px;
+      }
+
+      .section-desc {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 16px;
+        line-height: 1.5;
+        font-weight: 500;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      label {
+        min-width: 140px;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--fg);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      select {
+        flex: 1;
+        padding: 10px 12px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font: inherit;
+        font-weight: 500;
+        color: var(--fg);
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      select:hover {
+        border-color: var(--accent);
+        background: var(--panel);
+      }
+
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-light);
+      }
+
+      .btn {
+        padding: 10px 14px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--fg);
+        font: inherit;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .btn:hover {
+        background: var(--panel);
+        border-color: var(--accent);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      }
+
+      .btn.primary:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      }
+
+      .btn.danger {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: white;
+      }
+
+      .btn.danger:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+      }
+
+      .note {
+        background: linear-gradient(135deg, var(--accent-light) 0%, #eff6ff 100%);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 12px;
+        color: var(--fg);
+        margin-top: 16px;
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      .note strong {
+        color: var(--accent);
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 24px 0;
+      }
+
+      .shortcuts-info {
+        background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+        border-left: 3px solid var(--accent);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--fg);
+        line-height: 1.6;
+        font-weight: 500;
+      }
+
+      .shortcuts-info strong {
+        color: var(--accent);
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>✓ Allowlist Settings</h1>
+        <p class="subtitle">Manage your whitelists and preferences</p>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">📋 Manage Allowlists</h2>
+        <p class="section-desc">Create, rename, or delete your whitelists. "Scratchpad" is your default list.</p>
+        
+        <div class="row">
+          <label for="list">Active list:</label>
+          <select id="list"></select>
+        </div>
+
+        <div class="row">
+          <button id="rename" class="btn primary">Rename</button>
+          <button id="delete" class="btn danger">Delete</button>
+        </div>
+
+        <div class="note">
+          <strong>ℹ️ Info:</strong> The "Scratchpad" list cannot be renamed or deleted. It's your permanent default canvas.
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">⌨️ Keyboard Shortcuts</h2>
+        <p class="section-desc">Use these keyboard shortcuts for quick actions:</p>
+        
+        <div class="shortcuts-info">
+          <strong>Cmd+Shift+L</strong> (Mac) / <strong>Ctrl+Shift+L</strong> (Windows/Linux)
+          <br>Add current site to allowlist
+        </div>
+
+        <div class="shortcuts-info">
+          <strong>Cmd+Shift+K</strong> (Mac) / <strong>Ctrl+Shift+K</strong> (Windows/Linux)
+          <br>Switch to next allowlist
+        </div>
+
+        <div class="note" style="margin-top: 14px;">
+          These shortcuts are customizable in your browser's extension settings page.
+        </div>
+      </div>
+
+      <footer>
+        Version 2.0 • Privacy-focused browser extension for safe browsing
+      </footer>
+    </div>
+
+    <script type="module">
+      const list = document.getElementById('list');
+      const renameBtn = document.getElementById('rename');
+      const deleteBtn = document.getElementById('delete');
+
+      const send = (type, payload) => new Promise(res => chrome.runtime.sendMessage({ type, payload }, res));
+
+      let state = null;
+      
+      async function load() {
+        state = await send('get_state');
+        list.innerHTML = '';
+        Object.keys(state.allowlists).forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          if (name === state.current) opt.selected = true;
+          list.appendChild(opt);
+        });
+        const isScratchpad = list.value === 'Scratchpad';
+        renameBtn.disabled = isScratchpad;
+        deleteBtn.disabled = isScratchpad;
+      }
+
+      list.addEventListener('change', async () => {
+        await send('set_current', list.value);
+        await load();
+      });
+
+      renameBtn.addEventListener('click', async () => {
+        const from = list.value;
+        const to = prompt('Rename allowlist to:', from);
+        if (!to || to === from) return;
+        const res = await send('rename_allowlist', { from, to });
+        if (res?.ok) {
+          await load();
+        } else {
+          alert('❌ ' + (res?.error || 'Rename failed'));
+        }
+      });
+
+      deleteBtn.addEventListener('click', async () => {
+        const name = list.value;
+        if (!confirm(`⚠️ Delete allowlist "${name}"?\n\nThis action cannot be undone.`)) return;
+        const res = await send('delete_allowlist', name);
+        if (res?.ok) {
+          await load();
+        } else {
+          alert('❌ ' + (res?.error || 'Delete failed'));
+        }
+      });
+
+      load();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Allowlist - Analytics</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #fafbfc;
+        --bg-secondary: #f3f5f7;
+        --panel: #ffffff;
+        --muted: #738394;
+        --muted-light: #a8b5c4;
+        --fg: #1a2332;
+        --fg-light: #4a5f7f;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --accent-light: #eff6ff;
+        --accent-2: #10b981;
+        --accent-2-light: #ecfdf5;
+        --danger: #ef4444;
+        --danger-light: #fee2e2;
+        --warning: #f59e0b;
+        --chip: #e5e7eb;
+        --border: #e5e7eb;
+        --border-light: #f0f1f3;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 10px 32px 0 rgba(0, 0, 0, 0.12);
+        --radius: 12px;
+        --radius-md: 10px;
+        --radius-sm: 8px;
+        --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+        color: var(--fg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      .header {
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 15px;
+        margin: 0;
+        font-weight: 500;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .tab-btn {
+        padding: 12px 16px;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: var(--transition);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+      }
+
+      .tab-btn.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      .tab-btn:hover {
+        color: var(--fg);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+      }
+
+      .card:hover {
+        border-color: var(--accent-light);
+        box-shadow: var(--shadow);
+      }
+
+      .metric-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--accent);
+        margin: 8px 0;
+      }
+
+      .metric-label {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .metric-sub {
+        font-size: 12px;
+        color: var(--muted-light);
+        margin-top: 6px;
+      }
+
+      .list-container {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+
+      .list-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border-light);
+        transition: var(--transition);
+      }
+
+      .list-item:last-child {
+        border-bottom: none;
+      }
+
+      .list-item:hover {
+        background: var(--bg-secondary);
+      }
+
+      .list-item-main {
+        flex: 1;
+      }
+
+      .list-item-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--fg);
+        word-break: break-all;
+      }
+
+      .list-item-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .list-item-stat {
+        font-weight: 700;
+        color: var(--accent);
+        font-size: 14px;
+        min-width: 60px;
+        text-align: right;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--muted);
+      }
+
+      .empty-state-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+
+      .empty-state-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--fg);
+        margin-bottom: 6px;
+      }
+
+      .empty-state-text {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .period-selector {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .period-btn {
+        padding: 8px 14px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--fg);
+        font-weight: 600;
+        font-size: 12px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .period-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+      }
+
+      .period-btn:hover {
+        border-color: var(--accent);
+      }
+
+      .chart-container {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+
+      .daily-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .daily-item:last-child {
+        border-bottom: none;
+      }
+
+      .daily-date {
+        min-width: 80px;
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .daily-bars {
+        display: flex;
+        gap: 4px;
+        align-items: flex-end;
+        flex: 1;
+        height: 24px;
+      }
+
+      .bar {
+        flex: 1;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+        border-radius: 4px;
+        min-height: 4px;
+        transition: var(--transition);
+      }
+
+      .bar:hover {
+        opacity: 0.8;
+      }
+
+      .bar.warning {
+        background: linear-gradient(135deg, var(--warning) 0%, #f59e0b 100%);
+      }
+
+      .daily-stats {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+      }
+
+      .stat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background: var(--accent-light);
+        color: var(--accent);
+        border-radius: 4px;
+        font-weight: 600;
+      }
+
+      .stat-badge.warning {
+        background: linear-gradient(135deg, #fef3c7 0%, #fef3c7 100%);
+        color: var(--warning);
+      }
+
+      .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 16px;
+        color: var(--fg);
+        letter-spacing: -0.3px;
+      }
+
+      nav {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .nav-btn {
+        padding: 10px 14px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--fg);
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .nav-btn:hover {
+        background: var(--panel);
+        border-color: var(--accent);
+      }
+
+      .nav-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: white;
+      }
+
+      footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>📊 Analytics</h1>
+        <p class="subtitle">Insights into your focus and browsing patterns</p>
+      </div>
+
+      <nav id="nav" style="display: none;">
+        <button class="nav-btn active" data-page="analytics">Analytics</button>
+        <button class="nav-btn" data-page="settings">Settings</button>
+      </nav>
+
+      <!-- Analytics Page -->
+      <div id="analytics-page" class="page">
+        <div class="period-selector">
+          <button class="period-btn active" data-days="7">Last 7 days</button>
+          <button class="period-btn" data-days="14">Last 14 days</button>
+          <button class="period-btn" data-days="30">Last 30 days</button>
+          <button class="period-btn" data-days="90">Last 90 days</button>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <div class="metric-label">🚫 Blocked Attempts</div>
+            <div class="metric-value" id="total-blocked">0</div>
+            <div class="metric-sub" id="blocked-sub">Sites you tried to visit</div>
+          </div>
+
+          <div class="card">
+            <div class="metric-label">✓ Allowed Visits</div>
+            <div class="metric-value" id="total-visits">0</div>
+            <div class="metric-sub" id="visits-sub">Times you visited allowed sites</div>
+          </div>
+
+          <div class="card">
+            <div class="metric-label">⏱️ Time Focused</div>
+            <div class="metric-value" id="total-time">0h</div>
+            <div class="metric-sub" id="time-sub">Total time on allowed sites</div>
+          </div>
+
+          <div class="card">
+            <div class="metric-label">🎯 Focus Score</div>
+            <div class="metric-value" id="focus-score">—</div>
+            <div class="metric-sub" id="score-sub">Estimated focus level</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="section-title">📈 Weekly Trends & Achievements</h3>
+          <div id="trends-section" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+              <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                <div style="font-size: 20px; margin-bottom: 4px;" id="blocked-trend">📊</div>
+                <div style="font-size: 12px; color: var(--muted); margin-bottom: 2px;">Blocked Attempts</div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--fg);" id="blocked-change">—</div>
+              </div>
+              <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                <div style="font-size: 20px; margin-bottom: 4px;" id="visits-trend">📊</div>
+                <div style="font-size: 12px; color: var(--muted); margin-bottom: 2px;">Visits</div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--fg);" id="visits-change">—</div>
+              </div>
+              <div style="padding: 12px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                <div style="font-size: 20px; margin-bottom: 4px;" id="time-trend">📊</div>
+                <div style="font-size: 12px; color: var(--muted); margin-bottom: 2px;">Focus Time</div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--fg);" id="time-change">—</div>
+              </div>
+            </div>
+            <div id="achievements" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="section-title">Daily Breakdown</h3>
+          <div id="daily-chart"></div>
+        </div>
+            <div style="padding: 18px; border-bottom: 1px solid var(--border);">
+              <h3 class="section-title" style="margin: 0;">🔗 Most Blocked Sites</h3>
+            </div>
+            <div id="blocked-list"></div>
+          </div>
+
+          <div class="list-container">
+            <div style="padding: 18px; border-bottom: 1px solid var(--border);">
+              <h3 class="section-title" style="margin: 0;">⭐ Top Visited Sites</h3>
+            </div>
+            <div id="visited-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div id="settings-page" class="page" style="display: none;">
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px;">
+          <h2 class="section-title">⚙️ Extension Settings</h2>
+          <p style="color: var(--muted); font-size: 13px; margin-bottom: 18px; line-height: 1.6;">Manage your allowlists and preferences directly from the popup for quick access. Settings available:</p>
+          
+          <ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 13px; line-height: 1.8;">
+            <li><strong style="color: var(--fg);">Manage Allowlists</strong> — Create, rename, or delete whitelists</li>
+            <li><strong style="color: var(--fg);">Chain Lists</strong> — Combine multiple allowlists to merge their entries</li>
+            <li><strong style="color: var(--fg);">Import/Export</strong> — Backup or share your allowlists</li>
+            <li><strong style="color: var(--fg);">Keyboard Shortcuts</strong> — Customize quick-add keybinds</li>
+          </ul>
+        </div>
+
+        <div style="background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px;">
+          <h3 class="section-title">📋 Preset Allowlists</h3>
+          <p style="color: var(--muted); font-size: 13px; margin-bottom: 18px;">The following preset allowlists are available and can be customized:</p>
+          
+          <div id="presets-list" style="display: grid; gap: 12px;"></div>
+        </div>
+      </div>
+
+      <footer>
+        Analytics • Focus-driven allowlist extension
+      </footer>
+    </div>
+
+    <script type="module">
+      const send = (type, payload) => new Promise(res => chrome.runtime.sendMessage({ type, payload }, res));
+
+      let currentPeriod = 7;
+
+      async function loadAnalytics(days = 7) {
+        const data = await send('get_analytics', days);
+        
+        // Update metrics
+        document.getElementById('total-blocked').textContent = data.totalBlockedAttempts.toLocaleString();
+        document.getElementById('total-visits').textContent = data.totalVisits.toLocaleString();
+        
+        const hours = Math.round(data.totalTimeSpent / 3600000);
+        document.getElementById('total-time').textContent = hours > 0 ? `${hours}h` : '<1h';
+        
+        // Calculate focus score (blocked attempts as negative indicator)
+        const avgBlockedPerDay = data.totalBlockedAttempts / days;
+        let score = 'Great';
+        if (avgBlockedPerDay > 10) score = 'Fair';
+        if (avgBlockedPerDay > 20) score = 'Needs work';
+        document.getElementById('focus-score').textContent = score;
+        
+        // Load trends
+        if (days === 7) {
+          const trends = await send('get_trends');
+          
+          // Update trend indicators
+          const icons = { up: '📈', down: '📉', stable: '➡️' };
+          document.getElementById('blocked-trend').textContent = icons[trends.blockedTrend];
+          document.getElementById('visits-trend').textContent = icons[trends.visitsTrend];
+          document.getElementById('time-trend').textContent = icons[trends.timeTrend];
+          
+          // Update changes
+          const blockedPercent = trends.blockedChangePercent;
+          const timePercent = trends.timeChangePercent;
+          const blockedDir = trends.blockedTrend === 'up' ? '↑' : trends.blockedTrend === 'down' ? '↓' : '→';
+          const timeDir = trends.timeTrend === 'up' ? '↑' : trends.timeTrend === 'down' ? '↓' : '→';
+          document.getElementById('blocked-change').textContent = `${blockedDir} ${blockedPercent}% vs last week`;
+          document.getElementById('visits-change').textContent = `${trends.visitsChange} visits`;
+          document.getElementById('time-change').textContent = `${timeDir} ${timePercent}% vs last week`;
+          
+          // Render achievements
+          const achievementsEl = document.getElementById('achievements');
+          if (trends.achievements.length === 0) {
+            achievementsEl.innerHTML = '<div style="font-size: 12px; color: var(--muted); padding: 12px; text-align: center;">Keep going! More achievements coming soon.</div>';
+          } else {
+            achievementsEl.innerHTML = trends.achievements.map(a => `
+              <div style="padding: 8px 12px; background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; font-size: 13px; font-weight: 600; color: var(--fg);">${a}</div>
+            `).join('');
+          }
+        }
+        
+        // Render blocked sites list
+        const blockedList = document.getElementById('blocked-list');
+        if (data.topBlocked.length === 0) {
+          blockedList.innerHTML = '<div class="empty-state"><div class="empty-state-text">No blocked attempts yet</div></div>';
+        } else {
+          blockedList.innerHTML = data.topBlocked.map(site => `
+            <div class="list-item">
+              <div class="list-item-main">
+                <div class="list-item-title">${site.hostname}</div>
+                <div class="list-item-meta">${site.count} attempt${site.count !== 1 ? 's' : ''}</div>
+              </div>
+              <div class="list-item-stat">${site.count}</div>
+            </div>
+          `).join('');
+        }
+        
+        // Render visited sites list
+        const visitedList = document.getElementById('visited-list');
+        if (data.topVisited.length === 0) {
+          visitedList.innerHTML = '<div class="empty-state"><div class="empty-state-text">No visits yet</div></div>';
+        } else {
+          visitedList.innerHTML = data.topVisited.map(site => {
+            const mins = Math.round(site.totalTime / 60000);
+            const timeLabel = mins < 60 ? `${mins}m` : `${Math.round(mins / 60)}h`;
+            return `
+              <div class="list-item">
+                <div class="list-item-main">
+                  <div class="list-item-title">${site.hostname}</div>
+                  <div class="list-item-meta">${site.visits} visit${site.visits !== 1 ? 's' : ''} • ${timeLabel} spent</div>
+                </div>
+                <div class="list-item-stat">${timeLabel}</div>
+              </div>
+            `;
+          }).join('');
+        }
+        
+        // Render daily breakdown
+        const dailyChart = document.getElementById('daily-chart');
+        const dailyData = data.dailyBreakdown || [];
+        if (dailyData.length === 0) {
+          dailyChart.innerHTML = '<div class="empty-state"><div class="empty-state-text">No data yet</div></div>';
+        } else {
+          const maxBlocked = Math.max(...dailyData.map(([, d]) => d.blocked), 1);
+          const maxVisited = Math.max(...dailyData.map(([, d]) => d.visited), 1);
+          dailyChart.innerHTML = dailyData.map(([date, stats]) => {
+            const blockedHeight = (stats.blocked / maxBlocked) * 100;
+            const visitedHeight = (stats.visited / maxVisited) * 100;
+            const dateObj = new Date(date);
+            const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            return `
+              <div class="daily-item">
+                <div class="daily-date">${dateStr}</div>
+                <div class="daily-bars">
+                  <div class="bar warning" style="height: ${Math.max(blockedHeight, 5)}%" title="Blocked: ${stats.blocked}"></div>
+                  <div class="bar" style="height: ${Math.max(visitedHeight, 5)}%" title="Visits: ${stats.visited}"></div>
+                </div>
+                <div class="daily-stats">
+                  <span class="stat-badge warning">🚫 ${stats.blocked}</span>
+                  <span class="stat-badge">✓ ${stats.visited}</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      async function loadSettings() {
+        const state = await send('get_state');
+        const presetsList = document.getElementById('presets-list');
+        
+        // Hardcoded preset list for display
+        const presets = [
+          { name: '🎓 Student', desc: 'Blocks social media & video sites for focused studying' },
+          { name: '💼 Work', desc: 'Blocks social media & news sites for work focus' },
+          { name: '🏃 Deep Work', desc: 'Maximum focus: blocks all social, news, and messaging' },
+          { name: '👶 Kids', desc: 'Restricted list for safe viewing' },
+          { name: '🌙 Evening Wind-down', desc: 'Blocks work & coding sites for evening relaxation' },
+        ];
+        
+        presetsList.innerHTML = presets.map(p => {
+          const isActive = state.current === p.name;
+          return `
+            <div style="padding: 12px; background: ${isActive ? 'var(--accent-light)' : 'var(--bg-secondary)'}; border: 1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}; border-radius: 8px;">
+              <div style="font-weight: 600; color: var(--fg); margin-bottom: 4px;">${p.name}</div>
+              <div style="font-size: 12px; color: var(--muted);">${p.desc}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Period selector
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentPeriod = parseInt(btn.dataset.days);
+          loadAnalytics(currentPeriod);
+        });
+      });
+
+      // Navigation
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const page = btn.dataset.page;
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+          btn.classList.add('active');
+          document.getElementById(`${page}-page`).style.display = 'block';
+          if (page === 'settings') loadSettings();
+        });
+      });
+
+      // Initial load
+      loadAnalytics(7);
+    </script>
+  </body>
+</html>
