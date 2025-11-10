@@ -1,40 +1,52 @@
 {
-	"name": "Allowlist-Only Site Access (V2)",
-	"description": "Block everything by default. Only allow websites that are in the active allowlist. Quick-add current site and switch lists with shortcuts.",
-	"version": "1.0.0",
-	"manifest_version": 3,
-	"action": {
-		"default_title": "Allowlist",
-		"default_popup": "popup.html"
-	},
-	"background": {
-		"service_worker": "background.js",
-		"type": "module"
-	},
-	"permissions": [
-		"declarativeNetRequest",
-		"storage",
-		"tabs",
-		"webNavigation"
-	],
-	"commands": {
-		"add-current-site": {
-			"description": "Add current site to active allowlist",
-			"suggested_key": {
-				"default": "Ctrl+Shift+L",
-				"mac": "Command+Shift+L"
-			}
-		},
-		"cycle-allowlist": {
-			"description": "Switch to next saved allowlist",
-			"suggested_key": {
-				"default": "Ctrl+Shift+K",
-				"mac": "Command+Shift+K"
-			}
-		}
-	},
-	"options_ui": {
-		"page": "analytics.html",
-		"open_in_tab": true
-	}
+  "name": "AllowList",
+  "description": "Block everything by default. Only allow sites you add. Manage lists and switch between them with keyboard shortcuts.",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "icons": {
+    "16": "allow_list_extension_icon_16.png",
+    "32": "allow_list_extension_icon_32.png",
+    "48": "allow_list_extension_icon_48.png",
+    "128": "allow_list_extension_icon_128.png"
+  },
+  "action": {
+    "default_title": "Allowlist",
+    "default_popup": "popup.html",
+    "default_icons": {
+      "16": "allow_list_extension_icon_16.png",
+      "32": "allow_list_extension_icon_32.png",
+      "48": "allow_list_extension_icon_48.png",
+      "128": "allow_list_extension_icon_128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "storage",
+    "tabs",
+    "webNavigation"
+  ],
+  "commands": {
+    "add-current-site": {
+      "description": "Add current site to active allowlist",
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      }
+    },
+    "cycle-allowlist": {
+      "description": "Switch to next saved allowlist",
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      }
+    }
+  },
+  "options_ui": {
+    "page": "analytics.html",
+    "open_in_tab": true
+  }
 }

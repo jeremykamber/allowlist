@@ -5,8 +5,20 @@ const send = (type, payload) =>
 
 let state = null;
 
+function getTimeGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning!";
+    if (hour < 18) return "Good Afternoon!";
+    if (hour < 21) return "Good Evening!";
+    return "good night";
+}
+
 async function init() {
     state = await send("get_state");
+    const greeting = getTimeGreeting();
+    const greetingEl = $("#header-greeting");
+    // greetingEl.textContent = greeting; TODO: Maybe implement later
+    greetingEl.textContent = "AllowList";
     renderAllowlists();
     renderEntries();
     syncToggle();
@@ -15,6 +27,7 @@ async function init() {
 function renderAllowlists() {
     const select = $("#list-select");
     select.innerHTML = "";
+    if (!state || !state.allowlists) return;
     Object.keys(state.allowlists).forEach((name) => {
         const opt = document.createElement("option");
         opt.value = name;
@@ -33,6 +46,11 @@ function renderAllowlists() {
 function renderEntries() {
     const list = $("#entries");
     const empty = $("#empty-state");
+    if (!state || !state.allowlists || !state.current) {
+        empty.classList.remove("hidden");
+        list.innerHTML = "";
+        return;
+    }
     const entries = state.allowlists[state.current] || [];
 
     list.innerHTML = "";
@@ -240,14 +258,14 @@ $("#new-list-btn").addEventListener("click", async () => {
     if (!name) return;
     const name_trimmed = name.trim();
     if (!name_trimmed) return;
-    
+
     // Check if name already exists
     const state = await send("get_state");
     if (state.allowlists[name_trimmed]) {
         toast("List already exists");
         return;
     }
-    
+
     // Create new list with empty entries
     await send("save_allowlist", { name: name_trimmed, entries: [] });
     await send("set_current", name_trimmed);

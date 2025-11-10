@@ -85,6 +85,7 @@ class AllowlistRepository {
 		this._cache = null;
 		this._cacheTime = 0;
 		this._CACHE_TTL = 500; // 500ms cache to avoid rapid re-reads
+		this._pendingWrite = null; // Debounce rapid writes
 	}
 
 	async init() {
@@ -145,13 +146,25 @@ class AllowlistRepository {
 	}
 
 	async setState(state) {
-		await chrome.storage.sync.set({
-			[STORAGE_KEYS.ALLOWLISTS]: state.allowlists,
-			[STORAGE_KEYS.CURRENT]: state.current,
-			[STORAGE_KEYS.ENABLED]: typeof state.enabled === 'boolean' ? state.enabled : true,
-		});
 		this._cache = state;
 		this._cacheTime = Date.now();
+		
+		// Debounce writes to avoid quota errors on rapid changes
+		if (this._pendingWrite) clearTimeout(this._pendingWrite);
+		
+		this._pendingWrite = setTimeout(async () => {
+			try {
+				await chrome.storage.sync.set({
+					[STORAGE_KEYS.ALLOWLISTS]: state.allowlists,
+					[STORAGE_KEYS.CURRENT]: state.current,
+					[STORAGE_KEYS.ENABLED]: typeof state.enabled === 'boolean' ? state.enabled : true,
+				});
+			} catch (e) {
+				// Quota error - log but don't crash
+				console.error('Storage write failed:', e.message);
+			}
+			this._pendingWrite = null;
+		}, 100);
 	}
 
 	async setCurrent(name) {
