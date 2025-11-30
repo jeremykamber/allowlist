@@ -2,330 +2,269 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Access Blocked</title>
+	<title>Focus Mode Active</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<style>
 		:root {
 			--bg: #fafbfc;
 			--panel: #ffffff;
 			--fg: #1a2332;
+			--fg-secondary: #6b7280;
 			--muted: #738394;
 			--accent: #3b82f6;
 			--accent-hover: #2563eb;
 			--accent-light: #eff6ff;
+			--success: #10b981;
+			--success-light: #d1fae5;
+			--warning: #f59e0b;
+			--warning-light: #fef3c7;
 			--danger: #ef4444;
 			--border: #e5e7eb;
-			--shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
-			--radius: 12px;
+			--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+			--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+			--radius: 16px;
+			--radius-sm: 10px;
 			--transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 		}
 
-		* {
-			box-sizing: border-box;
-		}
+		* { box-sizing: border-box; margin: 0; padding: 0; }
 
 		body {
-			margin: 0;
-			padding: 0;
-			background: linear-gradient(135deg, var(--bg) 0%, #f0f4f8 100%);
-			font: 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+			background: linear-gradient(160deg, #f0f4f8 0%, #e8f0fe 50%, #f5f3ff 100%);
+			font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
 			color: var(--fg);
 			min-height: 100vh;
 			display: flex;
+			flex-direction: column;
 			align-items: center;
 			justify-content: center;
+			padding: 24px;
 			-webkit-font-smoothing: antialiased;
 		}
 
-		.container {
-			max-width: 540px;
-			width: 90%;
-			background: var(--panel);
-			border: 1px solid var(--border);
-			border-radius: var(--radius);
-			padding: 48px 32px;
-			box-shadow: var(--shadow);
+		.main {
+			max-width: 600px;
+			width: 100%;
+			animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(16px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		/* Hero Section */
+		.hero {
 			text-align: center;
-			animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+			margin-bottom: 32px;
 		}
 
-		@keyframes slideUp {
-			from {
-				opacity: 0;
-				transform: translateY(20px);
-			}
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
+		.hero-icon {
+			width: 80px;
+			height: 80px;
+			background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+			border-radius: 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto 20px;
+			font-size: 40px;
+			box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+			animation: float 3s ease-in-out infinite;
 		}
 
-		.icon {
-			font-size: 64px;
-			margin-bottom: 16px;
-			animation: bounce 1s ease-in-out infinite;
-		}
-
-		@keyframes bounce {
+		@keyframes float {
 			0%, 100% { transform: translateY(0); }
-			50% { transform: translateY(-8px); }
+			50% { transform: translateY(-6px); }
 		}
 
-		h1 {
-			margin: 0 0 8px;
+		.hero h1 {
 			font-size: 28px;
-			font-weight: 700;
-			color: var(--fg);
+			font-weight: 800;
 			letter-spacing: -0.5px;
+			margin-bottom: 8px;
+			background: linear-gradient(135deg, var(--fg) 0%, #4b5563 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
 		}
 
-		.subtitle {
-			color: var(--muted);
+		.hero-sub {
+			color: var(--fg-secondary);
 			font-size: 15px;
-			margin: 0 0 24px;
-			line-height: 1.6;
 			font-weight: 500;
 		}
 
-		.stats {
-			background: linear-gradient(135deg, var(--accent-light) 0%, #dbeafe 100%);
-			border: 1px solid rgba(59, 130, 246, 0.3);
-			border-radius: 10px;
-			padding: 16px;
-			margin-bottom: 24px;
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 12px;
+		.blocked-site {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			background: var(--panel);
+			border: 1px solid var(--border);
+			padding: 8px 14px;
+			border-radius: 8px;
+			font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+			font-size: 13px;
+			font-weight: 600;
+			color: var(--danger);
+			margin-top: 12px;
 		}
 
-		.stat {
+		.blocked-site::before {
+			content: "🚫";
+			font-size: 12px;
+		}
+
+		/* Motivation Card */
+		.motivation-card {
+			background: var(--panel);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			padding: 24px;
+			margin-bottom: 24px;
+			box-shadow: var(--shadow);
 			text-align: center;
+		}
+
+		.quote {
+			font-size: 18px;
+			font-weight: 600;
+			color: var(--fg);
+			line-height: 1.5;
+			margin-bottom: 12px;
+		}
+
+		.quote::before { content: """; color: var(--accent); font-size: 24px; }
+		.quote::after { content: """; color: var(--accent); font-size: 24px; }
+
+		.quote-author {
+			font-size: 13px;
+			color: var(--fg-secondary);
+			font-weight: 500;
+		}
+
+		/* Stats Row */
+		.stats-row {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 12px;
+			margin-bottom: 24px;
+		}
+
+		.stat-card {
+			background: var(--panel);
+			border: 1px solid var(--border);
+			border-radius: var(--radius-sm);
+			padding: 16px;
+			text-align: center;
+			box-shadow: var(--shadow);
 		}
 
 		.stat-value {
 			font-size: 24px;
-			font-weight: 700;
+			font-weight: 800;
 			color: var(--accent);
 			margin-bottom: 4px;
 		}
 
 		.stat-label {
 			font-size: 11px;
-			color: var(--muted);
-			font-weight: 600;
+			font-weight: 700;
 			text-transform: uppercase;
-			letter-spacing: 0.3px;
+			letter-spacing: 0.5px;
+			color: var(--fg-secondary);
 		}
 
-		.affirmation {
-			background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
-			border: 1px solid rgba(245, 158, 11, 0.3);
-			border-left: 3px solid #f59e0b;
-			border-radius: 8px;
-			padding: 16px;
-			margin-bottom: 24px;
-			font-size: 15px;
+		/* Mission Control */
+		.mission-control {
+			background: var(--panel);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			overflow: hidden;
+			box-shadow: var(--shadow);
+		}
+
+		/* Footer */
+		.footer {
+			text-align: center;
+			margin-top: 24px;
+			color: var(--fg-secondary);
+			font-size: 12px;
+		}
+
+		.footer a {
+			color: var(--accent);
+			text-decoration: none;
 			font-weight: 600;
-			color: var(--fg);
-			line-height: 1.6;
-			animation: slideIn 0.5s ease-out 0.2s both;
 		}
 
-		@keyframes slideIn {
-			from {
-				opacity: 0;
-				transform: translateX(-12px);
-			}
-			to {
-				opacity: 1;
-				transform: translateX(0);
-			}
+		.footer a:hover {
+			text-decoration: underline;
 		}
 
+		/* Breathing Exercise */
 		.breathing {
-			margin-bottom: 24px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin: 24px 0;
 		}
 
-		.breathing-circle {
-			width: 80px;
-			height: 80px;
-			margin: 0 auto 12px;
+		.breathing-ring {
+			width: 60px;
+			height: 60px;
 			border: 3px solid var(--accent);
 			border-radius: 50%;
-			animation: breathing 4s infinite;
+			animation: breathe 4s ease-in-out infinite;
+			margin-bottom: 8px;
 		}
 
-		@keyframes breathing {
-			0%, 100% { transform: scale(1); opacity: 0.3; }
-			50% { transform: scale(1.3); opacity: 0.1; }
+		@keyframes breathe {
+			0%, 100% { transform: scale(0.9); opacity: 0.5; }
+			50% { transform: scale(1.2); opacity: 0.2; }
 		}
 
 		.breathing-text {
 			font-size: 12px;
-			color: var(--muted);
 			font-weight: 600;
+			color: var(--fg-secondary);
 		}
 
-		.cta-section {
-			margin-top: 32px;
-			padding-top: 24px;
-			border-top: 1px solid var(--border);
-		}
-
-		.cta-text {
-			font-size: 13px;
-			color: var(--muted);
-			margin-bottom: 12px;
-		}
-
-		.btn {
-			display: inline-block;
-			padding: 12px 20px;
-			background: var(--accent);
-			border: none;
-			color: white;
-			font-weight: 600;
-			font-size: 13px;
-			border-radius: 8px;
-			cursor: pointer;
-			transition: var(--transition);
-			box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-		}
-
-		.btn:hover {
-			background: var(--accent-hover);
-			box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-			transform: translateY(-2px);
-		}
-
-		.btn:active {
-			transform: translateY(0);
-		}
-
-		.btn-secondary {
-			display: block;
-			margin-top: 8px;
-			background: transparent;
-			color: var(--accent);
-			border: 1px solid var(--accent);
-			box-shadow: none;
-		}
-
-		.btn-secondary:hover {
-			background: var(--accent-light);
-			box-shadow: none;
-		}
-
-		.site-name {
-			font-family: "SF Mono", Monaco, "Cascadia Code", Roboto Mono, monospace;
-			background: var(--bg);
-			padding: 6px 10px;
-			border-radius: 4px;
-			color: var(--accent);
-			font-weight: 600;
-			font-size: 12px;
-			display: inline-block;
-			margin: 8px 0;
-		}
-
-		.session-info {
-			background: var(--accent-light);
-			border: 1px solid var(--accent);
-			border-radius: 8px;
-			padding: 12px;
-			margin-top: 16px;
-			font-size: 12px;
-			color: var(--fg);
-		}
-
-		.session-info strong {
-			color: var(--accent);
+		/* Responsive */
+		@media (max-width: 500px) {
+			.stats-row {
+				grid-template-columns: 1fr;
+			}
+			.hero h1 {
+				font-size: 24px;
+			}
 		}
 	</style>
 </head>
 <body>
-	<div class="container">
-		<div class="icon">🎯</div>
-		<h1>Stay Focused</h1>
-		<p class="subtitle">This site is blocked while you're focusing.</p>
-
-		<div class="stats">
-			<div class="stat">
-				<div class="stat-value" id="focus-time">2h 14m</div>
-				<div class="stat-label">Time Focused</div>
-			</div>
-			<div class="stat">
-				<div class="stat-value" id="blocked-count">8</div>
-				<div class="stat-label">Attempts Today</div>
-			</div>
+	<div class="main">
+		<!-- Hero -->
+		<div class="hero">
+			<div class="hero-icon">🎯</div>
+			<h1>Stay in the Zone</h1>
+			<p class="hero-sub">Focus mode is active. You've got this!</p>
+			<div class="blocked-site" id="blocked-site">example.com</div>
 		</div>
 
-		<div class="affirmation" id="affirmation">
-			Stay focused on what matters
+		<!-- Motivation -->
+		<div class="motivation-card">
+			<div class="quote" id="quote">The secret of getting ahead is getting started.</div>
+			<div class="quote-author" id="quote-author">— Mark Twain</div>
 		</div>
 
-		<div class="breathing" id="breathing-section" style="display: none;">
-			<div class="breathing-circle"></div>
-			<div class="breathing-text">Take a deep breath</div>
+		<!-- Breathing (sometimes) -->
+		<div class="breathing" id="breathing" style="display: none;">
+			<div class="breathing-ring"></div>
+			<div class="breathing-text">Take a breath. Reset your focus.</div>
 		</div>
 
-		<div class="cta-section">
-			<p class="cta-text">Trying to access:</p>
-			<div class="site-name" id="site-name">example.com</div>
-
-			<div id="session-info" class="session-info" style="display: none;"></div>
-
-			<p style="margin-top: 16px; font-size: 12px; color: var(--muted);">
-				<strong>Tip:</strong> Use the extension popup to check time remaining or temporarily adjust your allowlist.
-			</p>
-		</div>
 	</div>
 
-	<script>
-		const send = (type, payload) => new Promise(res => chrome.runtime.sendMessage({ type, payload }, res));
-
-		async function init() {
-			// Get site name from query param
-			const url = new URL(window.location);
-			const site = url.searchParams.get('site') || 'example.com';
-			document.getElementById('site-name').textContent = site;
-
-			// Get stats
-			const analytics = await send('get_analytics', 7);
-			const focusHours = Math.floor(analytics.totalTimeSpent / 3600000);
-			const focusMins = Math.floor((analytics.totalTimeSpent % 3600000) / 60000);
-			document.getElementById('focus-time').textContent = `${focusHours}h ${focusMins}m`;
-			document.getElementById('blocked-count').textContent = analytics.totalBlockedAttempts;
-
-			// Get affirmation
-			const settings = await send('get_block_page_settings');
-			document.getElementById('affirmation').textContent = settings.affirmation || 'Stay focused on what matters';
-
-			// Check for active session
-			const activeSession = await send('get_active_session');
-			if (activeSession) {
-				const [h, m] = activeSession.endTime.split(':');
-				const now = new Date();
-				const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
-				if (endTime < now) {
-					endTime.setDate(endTime.getDate() + 1);
-				}
-				const diff = endTime - now;
-				const hours = Math.floor(diff / 3600000);
-				const mins = Math.floor((diff % 3600000) / 60000);
-
-				const infoEl = document.getElementById('session-info');
-				infoEl.innerHTML = `<strong>Focus session ends in ${hours}h ${mins}m</strong><br>You're in the "${activeSession.name}" session`;
-				infoEl.style.display = 'block';
-			}
-
-			// Show breathing exercise half the time
-			if (Math.random() > 0.5) {
-				document.getElementById('breathing-section').style.display = 'block';
-			}
-		}
-
-		init();
-	</script>
+	<script src="blocked.js"></script>
 </body>
 </html>

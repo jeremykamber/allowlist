@@ -94,7 +94,7 @@ class AllowlistRepository {
 		let current = data[STORAGE_KEYS.CURRENT] || DEFAULT_ALLOWLIST_NAME;
 		let enabled = typeof data[STORAGE_KEYS.ENABLED] === 'boolean' ? data[STORAGE_KEYS.ENABLED] : true;
 		let presetsImported = !!data[STORAGE_KEYS.PRESETS_IMPORTED];
-		
+
 		if (!allowlists) {
 			allowlists = { [DEFAULT_ALLOWLIST_NAME]: [] };
 			current = DEFAULT_ALLOWLIST_NAME;
@@ -102,7 +102,7 @@ class AllowlistRepository {
 			// Ensure the non-renamable default always exists.
 			allowlists[DEFAULT_ALLOWLIST_NAME] = [];
 		}
-		
+
 		// Import presets on first run
 		if (!presetsImported) {
 			Object.entries(PRESET_ALLOWLISTS).forEach(([name, preset]) => {
@@ -112,7 +112,7 @@ class AllowlistRepository {
 			});
 			presetsImported = true;
 		}
-		
+
 		await chrome.storage.sync.set({
 			[STORAGE_KEYS.ALLOWLISTS]: allowlists,
 			[STORAGE_KEYS.CURRENT]: current,
@@ -148,10 +148,10 @@ class AllowlistRepository {
 	async setState(state) {
 		this._cache = state;
 		this._cacheTime = Date.now();
-		
+
 		// Debounce writes to avoid quota errors on rapid changes
 		if (this._pendingWrite) clearTimeout(this._pendingWrite);
-		
+
 		this._pendingWrite = setTimeout(async () => {
 			try {
 				await chrome.storage.sync.set({
@@ -412,7 +412,7 @@ class Analytics {
 		const analytics = await this.getAnalytics();
 		const now = Date.now();
 		const today = new Date(now).toDateString();
-		
+
 		if (!analytics.blockedAttempts) analytics.blockedAttempts = [];
 		const existing = analytics.blockedAttempts.find(a => a.hostname === hostname && a.date === today);
 		if (existing) {
@@ -421,11 +421,11 @@ class Analytics {
 		} else {
 			analytics.blockedAttempts.push({ hostname, date: today, count: 1, lastAttempt: now });
 		}
-		
+
 		// Keep only 90 days of data
 		const cutoff = new Date(now - 90 * 24 * 60 * 60 * 1000).toDateString();
 		analytics.blockedAttempts = analytics.blockedAttempts.filter(a => a.date >= cutoff);
-		
+
 		await chrome.storage.local.set({ [STORAGE_KEYS.ANALYTICS]: analytics });
 		this._cache = analytics;
 	}
@@ -434,7 +434,7 @@ class Analytics {
 		const analytics = await this.getAnalytics();
 		const now = Date.now();
 		const today = new Date(now).toDateString();
-		
+
 		if (!analytics.visitedAllowedSites) analytics.visitedAllowedSites = [];
 		const existing = analytics.visitedAllowedSites.find(a => a.hostname === hostname && a.date === today);
 		if (existing) {
@@ -450,11 +450,11 @@ class Analytics {
 				lastVisit: now,
 			});
 		}
-		
+
 		// Keep only 90 days of data
 		const cutoff = new Date(now - 90 * 24 * 60 * 60 * 1000).toDateString();
 		analytics.visitedAllowedSites = analytics.visitedAllowedSites.filter(a => a.date >= cutoff);
-		
+
 		await chrome.storage.local.set({ [STORAGE_KEYS.ANALYTICS]: analytics });
 		this._cache = analytics;
 	}
@@ -462,25 +462,25 @@ class Analytics {
 	async getAnalyticsSummary(days = 7) {
 		const analytics = await this.getAnalytics();
 		const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toDateString();
-		
+
 		const recentBlocked = (analytics.blockedAttempts || []).filter(a => a.date >= cutoff);
 		const recentVisited = (analytics.visitedAllowedSites || []).filter(a => a.date >= cutoff);
-		
+
 		// Top blocked sites
 		const topBlocked = recentBlocked
 			.sort((a, b) => b.count - a.count)
 			.slice(0, 10);
-		
+
 		// Top visited allowed sites
 		const topVisited = recentVisited
 			.sort((a, b) => b.totalTime - a.totalTime)
 			.slice(0, 10);
-		
+
 		// Total metrics
 		const totalBlockedAttempts = recentBlocked.reduce((sum, a) => sum + a.count, 0);
 		const totalVisits = recentVisited.reduce((sum, a) => sum + a.visits, 0);
 		const totalTimeSpent = recentVisited.reduce((sum, a) => sum + a.totalTime, 0);
-		
+
 		// Daily breakdown
 		const dailyBreakdown = {};
 		recentBlocked.forEach(a => {
@@ -492,7 +492,7 @@ class Analytics {
 			dailyBreakdown[a.date].visited += a.visits;
 			dailyBreakdown[a.date].timeSpent += a.totalTime;
 		});
-		
+
 		return {
 			period: `Last ${days} days`,
 			totalBlockedAttempts,
@@ -593,6 +593,166 @@ class SessionScheduler {
 
 const scheduler = new SessionScheduler();
 
+// ============================================================================
+// BLOCKING DETECTION STRATEGIES
+// Two approaches: Chrome-specific (declarativeNetRequest error) and 
+// browser-agnostic (webNavigation check). Can be swapped by changing activeBlockingStrategy.
+// ============================================================================
+
+/**
+ * Check if a URL is allowed by the current allowlist entries.
+ * This is the core matching logic used by the browser-agnostic approach.
+ */
+function isUrlAllowed(urlString, entries) {
+	if (!entries || entries.length === 0) return false;
+
+	let parsed;
+	try {
+		parsed = new URL(urlString);
+	} catch {
+		return false;
+	}
+
+	const hostname = parsed.hostname.toLowerCase();
+	const fullUrl = parsed.href;
+	const origin = parsed.origin;
+
+	for (const entry of entries) {
+		const val = entry.value.toLowerCase();
+		switch (entry.type) {
+			case 'domain': {
+				// Match domain and all subdomains
+				if (hostname === val || hostname.endsWith('.' + val)) return true;
+				break;
+			}
+			case 'subdomain':
+			case 'host': {
+				// Exact hostname match
+				if (hostname === val) return true;
+				break;
+			}
+			case 'tld': {
+				// Match TLD (e.g., .com, .org)
+				const tld = val.replace(/^\./, '');
+				if (hostname.endsWith('.' + tld) || hostname === tld) return true;
+				break;
+			}
+			case 'origin': {
+				// Match origin exactly
+				const entryOrigin = val.replace(/\/+$/, '');
+				if (origin === entryOrigin) return true;
+				break;
+			}
+			case 'url': {
+				// Match full URL exactly
+				if (fullUrl === val || fullUrl === val + '/' || fullUrl.replace(/\/$/, '') === val.replace(/\/$/, '')) return true;
+				break;
+			}
+		}
+	}
+	return false;
+}
+
+/**
+ * Strategy 1: Chrome-specific blocking detection using webNavigation.onErrorOccurred
+ * Works when declarativeNetRequest blocks the request (Chrome-only error codes)
+ */
+function setupChromeBlockingDetection() {
+	chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
+		if (details.frameId !== 0) return;
+
+		// Declarative Net Request blocks result in this error
+		if (details.error === 'net::ERR_BLOCKED_BY_CLIENT') {
+			try {
+				const url = new URL(details.url);
+				const hostname = url.hostname;
+				const state = await repo.getState();
+				if (state.enabled) {
+					await analytics.trackBlockedSite(hostname);
+				}
+			} catch (e) {
+				// Silently fail
+			}
+		}
+	}, { urls: ['<all_urls>'] });
+}
+
+/**
+ * Strategy 2: Browser-agnostic blocking detection using webNavigation.onBeforeNavigate
+ * Checks the allowlist before navigation and redirects to blocked page if not allowed.
+ * Works across Chrome, Firefox, Safari (WebKit), Edge, etc.
+ */
+function setupBrowserAgnosticBlockingDetection() {
+	// Use onBeforeNavigate - fires before navigation, allows redirects
+	chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+		// Only check main frame navigations
+		if (details.frameId !== 0) return;
+
+		// Skip extension pages and browser internal pages
+		const url = details.url;
+		if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+
+		// Skip our own blocked page to avoid redirect loops
+		if (url.includes(chrome.runtime.id) || url.includes('blocked.html')) return;
+
+		try {
+			const state = await repo.getState();
+
+			// If blocking is disabled, allow everything
+			if (!state.enabled) return;
+
+			const entries = state.allowlists[state.current] || [];
+
+			// Check if URL is allowed
+			if (isUrlAllowed(url, entries)) return;
+
+			// URL is blocked - redirect to our custom blocked page
+			const hostname = new URL(url).hostname;
+
+			// Track the blocked attempt
+			await analytics.trackBlockedSite(hostname);
+
+			// Redirect to blocked page with site info
+			const blockedPageUrl = chrome.runtime.getURL(`blocked.html?site=${encodeURIComponent(hostname)}`);
+
+			console.log('Blocking:', hostname, '-> redirecting to:', blockedPageUrl);
+
+			// Use tabs.update to navigate to blocked page
+			if (details.tabId && details.tabId > 0) {
+				await chrome.tabs.update(details.tabId, { url: blockedPageUrl });
+			}
+		} catch (e) {
+			console.error('Blocking check failed:', e);
+		}
+	}, { urls: ['<all_urls>'] });
+}
+
+// Configuration: Choose which blocking strategy to use
+// 'chrome' = Chrome-only declarativeNetRequest error detection (uses DNR for actual blocking)
+// 'agnostic' = Browser-agnostic webNavigation interception (works on all browsers including WebKit)
+const BLOCKING_STRATEGY = 'agnostic';
+
+let blockingDetectionInitialized = false;
+
+function initBlockingDetection() {
+	if (blockingDetectionInitialized) return;
+	blockingDetectionInitialized = true;
+
+	if (BLOCKING_STRATEGY === 'chrome') {
+		// Chrome-specific: relies on declarativeNetRequest for blocking,
+		// just detects the error for analytics
+		setupChromeBlockingDetection();
+	} else {
+		// Browser-agnostic: handles blocking via webNavigation redirect
+		// This works even if declarativeNetRequest isn't available
+		setupBrowserAgnosticBlockingDetection();
+	}
+}
+
+// ============================================================================
+// END BLOCKING DETECTION STRATEGIES
+// ============================================================================
+
 async function rebuildFromCurrent() {
 	const state = await repo.getState();
 	const entries = state.allowlists[state.current] || [];
@@ -615,7 +775,18 @@ chrome.runtime.onInstalled.addListener(async () => {
 	await repo.init();
 	await scheduler.init();
 	await rebuildFromCurrent();
+	initBlockingDetection();
 });
+
+// Also initialize on service worker startup (not just install)
+(async () => {
+	try {
+		await repo.getState(); // Ensure cache is warm
+		initBlockingDetection();
+	} catch (e) {
+		console.error('Startup init failed:', e);
+	}
+})();
 
 chrome.storage.onChanged.addListener(async (changes, area) => {
 	if (area === 'sync' && (changes[STORAGE_KEYS.ALLOWLISTS] || changes[STORAGE_KEYS.CURRENT] || changes[STORAGE_KEYS.ENABLED])) {
@@ -648,26 +819,6 @@ chrome.commands.onCommand.addListener(async (command) => {
 		await rebuildFromCurrent();
 	}
 });
-
-// Track blocked sites (when navigation fails due to blocking rule)
-chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
-	// Only track main_frame errors (page-level blocks, not subresources)
-	if (details.frameId !== 0) return;
-	
-	// Declarative Net Request blocks result in error code -24
-	if (details.error === 'net::ERR_BLOCKED_BY_CLIENT') {
-		try {
-			const url = new URL(details.url);
-			const hostname = url.hostname;
-			const state = await repo.getState();
-			if (state.enabled) {
-				await analytics.trackBlockedSite(hostname);
-			}
-		} catch (e) {
-			// Silently fail - invalid URL or other parsing error
-		}
-	}
-}, { urls: ['<all_urls>'] });
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 	(async () => {
@@ -767,6 +918,13 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 				case 'get_trends': {
 					const trends = await analytics.getTrends();
 					sendResponse(trends);
+					break;
+				}
+				case 'is_url_allowed': {
+					const state = await repo.getState();
+					const entries = state.allowlists[state.current] || [];
+					const allowed = isUrlAllowed(msg.payload, entries);
+					sendResponse({ allowed, enabled: state.enabled });
 					break;
 				}
 				default:

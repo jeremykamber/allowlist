@@ -20,6 +20,23 @@
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Generic hidden helper used by JS to toggle visibility */
+.hidden {
+  display: none;
+}
+
+/* Override for elements that need animation (modal, toast, dropdown) */
+.custom-select-menu.hidden,
+.toast.hidden {
+  display: block;
+  /* keep in flow for animation */
+}
+
+.modal.hidden {
+  display: flex;
+  /* keep in flow for animation */
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: white;
@@ -174,6 +191,95 @@ input:checked+.slider:before {
   display: flex;
   gap: 8px;
 }
+
+/* Custom select to replace native dropdown for better styling and webkit compat */
+.custom-select {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.custom-select-btn {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.custom-select-btn:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.custom-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  z-index: 200;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px;
+  /* Animations */
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.custom-select-menu.hidden {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+}
+
+.custom-select-menu .custom-select-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.custom-select-menu .custom-select-item:hover,
+.custom-select-menu .custom-select-item[aria-selected="true"] {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.new-list-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg-secondary);
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 18px;
+  transition: var(--transition);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-list-btn:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 
 .new-list-btn {
   width: 40px;
@@ -452,7 +558,8 @@ input:checked+.slider:before {
 }
 
 .modal.hidden {
-  display: none;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .modal-bg {
@@ -475,6 +582,23 @@ input:checked+.slider:before {
   width: 90%;
   max-height: 80vh;
   overflow-y: auto;
+  /* Animations */
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.modal.hidden .modal-card {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.modal-bg {
+  transition: opacity 0.18s ease;
+}
+
+.modal.hidden .modal-bg {
+  opacity: 0;
 }
 
 .modal-header {
@@ -521,7 +645,25 @@ input:checked+.slider:before {
 }
 
 .toast.hidden {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Undo button inside toast */
+.toast-undo {
+  margin-left: 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.toast-undo:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 @keyframes toast-in {

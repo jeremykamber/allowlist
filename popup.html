@@ -29,8 +29,14 @@
       <div class="list-selector-section">
         <label class="list-label">Active List</label>
         <div class="list-selector-wrapper">
-          <select id="list-select" class="list-select"></select>
-          <button id="new-list-btn" class="new-list-btn" title="Create new list">+</button>
+          <div id="list-select" class="custom-select" tabindex="0" aria-haspopup="listbox">
+            <button id="list-select-btn" class="custom-select-btn" aria-expanded="false">Scratchpad</button>
+            <div id="list-select-menu" class="custom-select-menu hidden" role="listbox" tabindex="-1"></div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button id="new-list-btn" class="new-list-btn" title="Create new list">+</button>
+            <button id="manage-list-btn" class="new-list-btn" title="Manage list">⋯</button>
+          </div>
         </div>
       </div>
 
@@ -58,20 +64,6 @@
   </div>
 
   <!-- Modals -->
-  <div id="add-choice" class="modal hidden">
-    <div class="modal-bg"></div>
-    <div class="modal-card">
-      <div class="modal-header">
-        <div class="modal-title">Add to which list?</div>
-        <button class="modal-close" id="choice-cancel-x">✕</button>
-      </div>
-      <div style="display: flex; gap: 8px; flex-direction: column;">
-        <button id="choice-update" class="btn primary full">Current list</button>
-        <button id="choice-new" class="btn secondary full">New list</button>
-        <button id="choice-cancel" class="btn ghost full">Cancel</button>
-      </div>
-    </div>
-  </div>
 
   <div id="edit-entry-modal" class="modal hidden">
     <div class="modal-bg"></div>
@@ -90,6 +82,59 @@
         <div style="display: flex; gap: 8px;">
           <button id="edit-entry-save" class="btn primary" style="flex: 1;">Save</button>
           <button id="edit-entry-cancel" class="btn ghost" style="flex: 1;">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manage List Modal -->
+  <div id="manage-list-modal" class="modal hidden">
+    <div class="modal-bg"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Manage List</div>
+        <button class="modal-close" id="manage-list-close">✕</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div id="manage-current-name" style="font-weight:700;color:var(--fg);"></div>
+        <input id="manage-rename-input" type="text" placeholder="Rename list" style="padding:10px;border:1px solid var(--border);border-radius:8px;font:inherit;">
+        <div style="display:flex; gap:8px;">
+          <button id="manage-rename-save" class="btn primary" style="flex:1;">Rename</button>
+          <button id="manage-save-as" class="btn secondary" style="flex:1;">Save as...</button>
+          <button id="manage-delete" class="btn ghost" style="flex:1;">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-delete-modal" class="modal hidden">
+    <div class="modal-bg"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Delete List?</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="color:var(--fg-secondary);">This action will remove the list and its entries. This cannot be undone.</div>
+        <div style="display:flex; gap:8px;">
+          <button id="confirm-delete-yes" class="btn primary" style="flex:1;">Delete</button>
+          <button id="confirm-delete-no" class="btn ghost" style="flex:1;">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="input-name-modal" class="modal hidden">
+    <div class="modal-bg"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="input-name-title">Name</div>
+        <button class="modal-close" id="input-name-close">✕</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <input id="input-name-value" type="text" placeholder="Name" style="padding:10px;border:1px solid var(--border);border-radius:8px;font:inherit;">
+        <div style="display:flex; gap:8px;">
+          <button id="input-name-save" class="btn primary" style="flex:1;">Save</button>
+          <button id="input-name-cancel" class="btn ghost" style="flex:1;">Cancel</button>
         </div>
       </div>
     </div>

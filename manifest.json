@@ -29,6 +29,20 @@
     "tabs",
     "webNavigation"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "blocked.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "commands": {
     "add-current-site": {
       "description": "Add current site to active allowlist",
