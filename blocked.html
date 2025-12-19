@@ -4,6 +4,7 @@
 	<meta charset="utf-8" />
 	<title>Focus Mode Active</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
 	<style>
 		:root {
 			--bg: #fafbfc;
@@ -27,6 +28,52 @@
 			--transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 		}
 
+		/* Dark mode */
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--bg: #0f172a;
+				--panel: #1e293b;
+				--fg: #f1f5f9;
+				--fg-secondary: #cbd5e1;
+				--muted: #94a3b8;
+				--accent: #60a5fa;
+				--accent-hover: #3b82f6;
+				--accent-light: #1e3a8a;
+				--border: #334155;
+				--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+				--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+			}
+		}
+
+		/* Manual dark mode override */
+		html[data-theme="dark"] {
+			--bg: #0f172a;
+			--panel: #1e293b;
+			--fg: #f1f5f9;
+			--fg-secondary: #cbd5e1;
+			--muted: #94a3b8;
+			--accent: #60a5fa;
+			--accent-hover: #3b82f6;
+			--accent-light: #1e3a8a;
+			--border: #334155;
+			--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+			--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+		}
+
+		html[data-theme="light"] {
+			--bg: #fafbfc;
+			--panel: #ffffff;
+			--fg: #1a2332;
+			--fg-secondary: #6b7280;
+			--muted: #738394;
+			--accent: #3b82f6;
+			--accent-hover: #2563eb;
+			--accent-light: #eff6ff;
+			--border: #e5e7eb;
+			--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+			--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+		}
+
 		* { box-sizing: border-box; margin: 0; padding: 0; }
 
 		body {
@@ -40,6 +87,20 @@
 			justify-content: center;
 			padding: 24px;
 			-webkit-font-smoothing: antialiased;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			body {
+				background: linear-gradient(160deg, #0f172a 0%, #1a2f5e 50%, #2a1f4a 100%);
+			}
+		}
+
+		html[data-theme="light"] body {
+			background: linear-gradient(160deg, #f0f4f8 0%, #e8f0fe 50%, #f5f3ff 100%);
+		}
+
+		html[data-theme="dark"] body {
+			background: linear-gradient(160deg, #0f172a 0%, #1a2f5e 50%, #2a1f4a 100%);
 		}
 
 		.main {
@@ -71,6 +132,11 @@
 			font-size: 40px;
 			box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
 			animation: float 3s ease-in-out infinite;
+		}
+
+		.hero-icon .material-symbols-outlined {
+			font-size: 48px;
+			color: white;
 		}
 
 		@keyframes float {
@@ -110,9 +176,8 @@
 			margin-top: 12px;
 		}
 
-		.blocked-site::before {
-			content: "🚫";
-			font-size: 12px;
+		.blocked-site .material-symbols-outlined {
+			font-size: 16px;
 		}
 
 		/* Motivation Card */
@@ -245,10 +310,10 @@
 	<div class="main">
 		<!-- Hero -->
 		<div class="hero">
-			<div class="hero-icon">🎯</div>
+			<div class="hero-icon"><span class="material-symbols-outlined">target</span></div>
 			<h1>Stay in the Zone</h1>
 			<p class="hero-sub">Focus mode is active. You've got this!</p>
-			<div class="blocked-site" id="blocked-site">example.com</div>
+			<div class="blocked-site" id="blocked-site"><span class="material-symbols-outlined">block</span><span id="blocked-site-text">example.com</span></div>
 		</div>
 
 		<!-- Motivation -->

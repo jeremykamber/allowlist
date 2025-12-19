@@ -10,7 +10,7 @@ const send = (type, payload) => new Promise((resolve) => {
     try {
         runtime.sendMessage({ type, payload }, (response) => {
             // Handle Chrome's lastError to prevent console errors
-            if (chrome.runtime.lastError) {
+            if (chrome.runtime && chrome.runtime.lastError) {
                 console.warn('Message error:', chrome.runtime.lastError.message);
                 resolve(null);
                 return;
@@ -65,15 +65,21 @@ function getDisplayName(entry) {
 async function init() {
     console.log('Blocked page init, URL:', window.location.href);
 
+    // Sync dark mode preference from extension
+    const savedPreference = localStorage.getItem('darkMode');
+    if (savedPreference !== null) {
+        document.documentElement.setAttribute('data-theme', savedPreference === 'true' ? 'dark' : 'light');
+    }
+
     // Get blocked site from query param
     const url = new URL(window.location.href);
     const site = url.searchParams.get('site');
     console.log('Site param:', site);
 
     if (site) {
-        document.getElementById('blocked-site').textContent = site;
+        document.getElementById('blocked-site-text').textContent = site;
     } else {
-        document.getElementById('blocked-site').textContent = 'this site';
+        document.getElementById('blocked-site-text').textContent = 'this site';
     }
 
     // Random quote

@@ -794,32 +794,6 @@ chrome.storage.onChanged.addListener(async (changes, area) => {
 	}
 });
 
-chrome.commands.onCommand.addListener(async (command) => {
-	if (command === 'add-current-site') {
-		const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-		if (!tab || !tab.url) return;
-		const entry = inferEntryFromUrl(tab.url);
-		if (!entry) return;
-		await repo.addEntryToCurrent(entry);
-		await rebuildFromCurrent();
-		if (tab.id != null) {
-			chrome.action.setBadgeText({ text: '+', tabId: tab.id });
-			chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tab.id });
-			setTimeout(() => chrome.action.setBadgeText({ text: '', tabId: tab.id }), 1200);
-		}
-	}
-
-	if (command === 'cycle-allowlist') {
-		const state = await repo.getState();
-		const names = Object.keys(state.allowlists);
-		if (names.length === 0) return;
-		const idx = names.indexOf(state.current);
-		const next = names[(idx + 1) % names.length];
-		await repo.setCurrent(next);
-		await rebuildFromCurrent();
-	}
-});
-
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 	(async () => {
 		try {

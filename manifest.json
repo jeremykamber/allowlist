@@ -1,6 +1,6 @@
 {
   "name": "AllowList",
-  "description": "Block everything by default. Only allow sites you add. Manage lists and switch between them with keyboard shortcuts.",
+  "description": "Block everything by default. Only allow sites you add. Manage your allowlists with an intuitive interface.",
   "version": "1.0.0",
   "manifest_version": 3,
   "icons": {
@@ -43,22 +43,6 @@
       ]
     }
   ],
-  "commands": {
-    "add-current-site": {
-      "description": "Add current site to active allowlist",
-      "suggested_key": {
-        "default": "Ctrl+Shift+L",
-        "mac": "Command+Shift+L"
-      }
-    },
-    "cycle-allowlist": {
-      "description": "Switch to next saved allowlist",
-      "suggested_key": {
-        "default": "Ctrl+Shift+K",
-        "mac": "Command+Shift+K"
-      }
-    }
-  },
   "options_ui": {
     "page": "analytics.html",
     "open_in_tab": true

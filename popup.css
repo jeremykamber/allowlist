@@ -20,6 +20,46 @@
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent: #60a5fa;
+    --accent-light: #1e3a8a;
+    --fg: #f3f4f6;
+    --fg-secondary: #9ca3af;
+    --bg: #111827;
+    --bg-secondary: #1f2937;
+    --border: #374151;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Manual dark mode override */
+html[data-theme="dark"] {
+  --accent: #60a5fa;
+  --accent-light: #1e3a8a;
+  --fg: #f3f4f6;
+  --fg-secondary: #9ca3af;
+  --bg: #111827;
+  --bg-secondary: #1f2937;
+  --border: #374151;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="light"] {
+  --accent: #3b82f6;
+  --accent-light: #eff6ff;
+  --fg: #1f2937;
+  --fg-secondary: #6b7280;
+  --bg: #ffffff;
+  --bg-secondary: #f9fafb;
+  --border: #e5e7eb;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
 /* Generic hidden helper used by JS to toggle visibility */
 .hidden {
   display: none;
@@ -39,7 +79,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: white;
+  background: var(--bg);
   color: var(--fg);
   font-size: 13px;
   line-height: 1.5;
@@ -50,7 +90,7 @@ body {
   max-height: 600px;
   display: flex;
   flex-direction: column;
-  background: white;
+  background: var(--bg);
 }
 
 /* Header */
@@ -60,7 +100,7 @@ body {
   align-items: center;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
-  background: white;
+  background: var(--bg);
   gap: 12px;
 }
 
@@ -140,6 +180,13 @@ input:checked+.slider:before {
   transition: var(--transition);
   color: var(--fg-secondary);
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn .material-symbols-outlined {
+  font-size: 20px;
 }
 
 .icon-btn:hover {
@@ -207,6 +254,7 @@ input:checked+.slider:before {
   background: var(--bg-secondary);
   text-align: left;
   font-weight: 600;
+  color: var(--fg);
   cursor: pointer;
 }
 
@@ -221,7 +269,7 @@ input:checked+.slider:before {
   top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
@@ -354,6 +402,35 @@ input:checked+.slider:before {
   cursor: pointer;
   transition: var(--transition);
   font-family: inherit;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.loading {
+  color: inherit;
+}
+
+.btn.loading::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .btn.primary {
@@ -436,6 +513,8 @@ input:checked+.slider:before {
   border-radius: 6px;
   font-family: inherit;
   font-size: 12px;
+  background: var(--bg-secondary);
+  color: var(--fg);
 }
 
 .add-input:focus {
@@ -499,12 +578,21 @@ input:checked+.slider:before {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 18px;
   color: var(--fg-secondary);
   padding: 4px 6px;
   border-radius: 4px;
   transition: var(--transition);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entry-edit .material-symbols-outlined,
+.entry-copy .material-symbols-outlined,
+.entry-delete .material-symbols-outlined {
+  font-size: 18px;
 }
 
 .entry-edit:hover,
@@ -574,7 +662,7 @@ input:checked+.slider:before {
 
 .modal-card {
   position: relative;
-  background: white;
+  background: var(--bg);
   border-radius: 12px;
   padding: 20px;
   box-shadow: var(--shadow-md);
@@ -677,3 +765,23 @@ input:checked+.slider:before {
     transform: translateX(-50%) translateY(0);
   }
 }
+
+/* Footer */
+.footer {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.footer-btn {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+.footer-btn:visited {
+  color: var(--fg);
+}
+
+/* Keyboard shortcut hints */

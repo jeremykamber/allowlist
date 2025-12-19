@@ -1,6 +1,17 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
 
+// Helper to set button loading state
+function setButtonLoading(btn, loading) {
+    if (loading) {
+        btn.classList.add('loading');
+        btn.disabled = true;
+    } else {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+    }
+}
+
 // Messaging wrapper for broader webkit/browser compatibility
 const runtimeSend = (msg, cb) => {
     try {
@@ -38,7 +49,33 @@ function getTimeGreeting() {
     return "good night";
 }
 
+function initDarkMode() {
+    const savedPreference = localStorage.getItem('darkMode');
+    
+    if (savedPreference !== null) {
+        document.documentElement.setAttribute('data-theme', savedPreference === 'true' ? 'dark' : 'light');
+    }
+    
+    updateDarkModeButton();
+}
+
+function toggleDarkMode() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('darkMode', newTheme === 'dark' ? 'true' : 'false');
+    updateDarkModeButton();
+}
+
+function updateDarkModeButton() {
+    const btn = $("#dark-mode-toggle");
+    if (!btn) return;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    btn.querySelector('.material-symbols-outlined').textContent = isDark ? 'brightness_7' : 'brightness_4';
+}
+
 async function init() {
+    initDarkMode();
     state = await send("get_state");
     const greeting = getTimeGreeting();
     const greetingEl = $("#header-greeting");
@@ -130,24 +167,30 @@ function renderEntries() {
             input.select();
 
             $("#edit-entry-save").onclick = async () => {
-                const newVal = input.value.trim();
-                if (!newVal || newVal === entry.value) {
+                const btn = $("#edit-entry-save");
+                setButtonLoading(btn, true);
+                try {
+                    const newVal = input.value.trim();
+                    if (!newVal || newVal === entry.value) {
+                        modal.classList.add("hidden");
+                        return;
+                    }
+                    const r = await send("classify_input", newVal);
+                    if (!r?.entry) {
+                        toast("Invalid");
+                        return;
+                    }
+                    await send("update_entry_current", {
+                        from: entry,
+                        to: r.entry,
+                    });
+                    state = await send("get_state");
+                    renderEntries();
                     modal.classList.add("hidden");
-                    return;
+                    toast("Updated");
+                } finally {
+                    setButtonLoading(btn, false);
                 }
-                const r = await send("classify_input", newVal);
-                if (!r?.entry) {
-                    toast("Invalid");
-                    return;
-                }
-                await send("update_entry_current", {
-                    from: entry,
-                    to: r.entry,
-                });
-                state = await send("get_state");
-                renderEntries();
-                modal.classList.add("hidden");
-                toast("Updated");
             };
 
             $("#edit-entry-cancel").onclick = () => {
@@ -205,29 +248,41 @@ function openManageModal() {
 
     // Rename
     $("#manage-rename-save").onclick = async () => {
-        const newName = input.value.trim();
-        if (!newName || newName === state.current) { modal.classList.add('hidden'); return; }
-        await send('rename_allowlist', { from: state.current, to: newName });
-        await send('set_current', newName);
-        state = await send('get_state');
-        renderAllowlists();
-        renderEntries();
-        modal.classList.add('hidden');
-        toast('Renamed');
+        const btn = $("#manage-rename-save");
+        setButtonLoading(btn, true);
+        try {
+            const newName = input.value.trim();
+            if (!newName || newName === state.current) { modal.classList.add('hidden'); return; }
+            await send('rename_allowlist', { from: state.current, to: newName });
+            await send('set_current', newName);
+            state = await send('get_state');
+            renderAllowlists();
+            renderEntries();
+            modal.classList.add('hidden');
+            toast('Renamed');
+        } finally {
+            setButtonLoading(btn, false);
+        }
     };
 
     // Save as
     $("#manage-save-as").onclick = async () => {
-        const name = await askForName('Save list as', state.current);
-        if (!name) return;
-        const entries = [...(state.allowlists[state.current] || [])];
-        await send('save_allowlist', { name: name.trim(), entries });
-        await send('set_current', name.trim());
-        state = await send('get_state');
-        renderAllowlists();
-        renderEntries();
-        modal.classList.add('hidden');
-        toast(`Saved as "${name.trim()}"`);
+        const btn = $("#manage-save-as");
+        setButtonLoading(btn, true);
+        try {
+            const name = await askForName('Save list as', state.current);
+            if (!name) return;
+            const entries = [...(state.allowlists[state.current] || [])];
+            await send('save_allowlist', { name: name.trim(), entries });
+            await send('set_current', name.trim());
+            state = await send('get_state');
+            renderAllowlists();
+            renderEntries();
+            modal.classList.add('hidden');
+            toast(`Saved as "${name.trim()}"`);
+        } finally {
+            setButtonLoading(btn, false);
+        }
     };
 
     // Delete
@@ -244,37 +299,43 @@ function openConfirmDelete() {
     dlg.classList.remove('hidden');
     $("#confirm-delete-no").onclick = () => dlg.classList.add('hidden');
     $("#confirm-delete-yes").onclick = async () => {
-        const name = state.current;
-        const entriesBackup = [...(state.allowlists[name] || [])];
-        // If scratchpad, clear instead of deleting default
-        if (name === 'Scratchpad') {
-            await send('save_allowlist', { name: 'Scratchpad', entries: [] });
+        const btn = $("#confirm-delete-yes");
+        setButtonLoading(btn, true);
+        try {
+            const name = state.current;
+            const entriesBackup = [...(state.allowlists[name] || [])];
+            // If scratchpad, clear instead of deleting default
+            if (name === 'Scratchpad') {
+                await send('save_allowlist', { name: 'Scratchpad', entries: [] });
+                state = await send('get_state');
+                renderAllowlists();
+                renderEntries();
+                dlg.classList.add('hidden');
+                toast('Cleared', async () => {
+                    await send('save_allowlist', { name: 'Scratchpad', entries: entriesBackup });
+                    state = await send('get_state');
+                    renderAllowlists();
+                    renderEntries();
+                    toast('Restored');
+                });
+                return;
+            }
+            await send('delete_allowlist', name);
             state = await send('get_state');
             renderAllowlists();
             renderEntries();
             dlg.classList.add('hidden');
-            toast('Cleared', async () => {
-                await send('save_allowlist', { name: 'Scratchpad', entries: entriesBackup });
+            toast('Deleted', async () => {
+                await send('save_allowlist', { name, entries: entriesBackup });
+                await send('set_current', name);
                 state = await send('get_state');
                 renderAllowlists();
                 renderEntries();
                 toast('Restored');
             });
-            return;
+        } finally {
+            setButtonLoading(btn, false);
         }
-        await send('delete_allowlist', name);
-        state = await send('get_state');
-        renderAllowlists();
-        renderEntries();
-        dlg.classList.add('hidden');
-        toast('Deleted', async () => {
-            await send('save_allowlist', { name, entries: entriesBackup });
-            await send('set_current', name);
-            state = await send('get_state');
-            renderAllowlists();
-            renderEntries();
-            toast('Restored');
-        });
     };
 }
 
@@ -352,12 +413,14 @@ function syncToggle() {
 // Event listeners
 
 $("#quick-add-site").addEventListener("click", async () => {
-    const [tab] = await queryTabs({
-        active: true,
-        currentWindow: true,
-    });
-    if (!tab?.url) return;
+    const btn = $("#quick-add-site");
+    setButtonLoading(btn, true);
     try {
+        const [tab] = await queryTabs({
+            active: true,
+            currentWindow: true,
+        });
+        if (!tab?.url) return;
         const u = new URL(tab.url);
         u.hash = "";
         const entry = {
@@ -370,16 +433,20 @@ $("#quick-add-site").addEventListener("click", async () => {
         toast(r?.isDuplicate ? "Already added" : `Added ${u.host}`);
     } catch (e) {
         toast("Error");
+    } finally {
+        setButtonLoading(btn, false);
     }
 });
 
 $("#quick-add-domain").addEventListener("click", async () => {
-    const [tab] = await queryTabs({
-        active: true,
-        currentWindow: true,
-    });
-    if (!tab?.url) return;
+    const btn = $("#quick-add-domain");
+    setButtonLoading(btn, true);
     try {
+        const [tab] = await queryTabs({
+            active: true,
+            currentWindow: true,
+        });
+        if (!tab?.url) return;
         const host = new URL(tab.url).hostname;
         const parts = host.split(".").filter(Boolean);
         let domain = host;
@@ -407,6 +474,8 @@ $("#quick-add-domain").addEventListener("click", async () => {
         toast(r?.isDuplicate ? "Already added" : `Added ${domain}`);
     } catch (e) {
         toast("Error");
+    } finally {
+        setButtonLoading(btn, false);
     }
 });
 
@@ -430,17 +499,23 @@ $("#add-input").addEventListener("keypress", async (e) => {
 });
 
 $("#add-btn").addEventListener("click", async () => {
-    const entry = await classify($("#add-input").value);
-    if (!entry) {
-        toast("Invalid");
-        return;
+    const btn = $("#add-btn");
+    setButtonLoading(btn, true);
+    try {
+        const entry = await classify($("#add-input").value);
+        if (!entry) {
+            toast("Invalid");
+            return;
+        }
+        // Add directly to current list (no dialog friction)
+        const r = await send("add_entry_current", entry);
+        state = await send("get_state");
+        renderEntries();
+        $("#add-input").value = "";
+        toast(r?.isDuplicate ? "Already added" : "Added");
+    } finally {
+        setButtonLoading(btn, false);
     }
-    // Add directly to current list (no dialog friction)
-    const r = await send("add_entry_current", entry);
-    state = await send("get_state");
-    renderEntries();
-    $("#add-input").value = "";
-    toast(r?.isDuplicate ? "Already added" : "Added");
 });
 
 // $('#open-settings').addEventListener('click', () => {
@@ -448,25 +523,31 @@ $("#add-btn").addEventListener("click", async () => {
 // });
 
 $("#new-list-btn").addEventListener("click", async () => {
-    const name = await askForName('New list name');
-    if (!name) return;
-    const name_trimmed = name.trim();
-    if (!name_trimmed) return;
+    const btn = $("#new-list-btn");
+    setButtonLoading(btn, true);
+    try {
+        const name = await askForName('New list name');
+        if (!name) return;
+        const name_trimmed = name.trim();
+        if (!name_trimmed) return;
 
-    // Check if name already exists
-    const state = await send("get_state");
-    if (state.allowlists[name_trimmed]) {
-        toast("List already exists");
-        return;
+        // Check if name already exists
+        const state = await send("get_state");
+        if (state.allowlists[name_trimmed]) {
+            toast("List already exists");
+            return;
+        }
+
+        // Create new list with empty entries
+        await send("save_allowlist", { name: name_trimmed, entries: [] });
+        await send("set_current", name_trimmed);
+        state = await send("get_state");
+        renderAllowlists();
+        renderEntries();
+        toast(`Created "${name_trimmed}"`);
+    } finally {
+        setButtonLoading(btn, false);
     }
-
-    // Create new list with empty entries
-    await send("save_allowlist", { name: name_trimmed, entries: [] });
-    await send("set_current", name_trimmed);
-    state = await send("get_state");
-    renderAllowlists();
-    renderEntries();
-    toast(`Created "${name_trimmed}"`);
 });
 
 $("#enabled-toggle").addEventListener("change", async () => {
@@ -476,6 +557,10 @@ $("#enabled-toggle").addEventListener("change", async () => {
 
 $("#edit-entry-close").addEventListener("click", () => {
     $("#edit-entry-modal").classList.add("hidden");
+});
+
+$("#dark-mode-toggle").addEventListener("click", () => {
+    toggleDarkMode();
 });
 
 // Close modals on background click
