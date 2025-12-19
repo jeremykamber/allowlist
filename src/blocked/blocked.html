@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Focus Mode Active</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
+	<style>
+		:root {
+			--bg: #fafbfc;
+			--panel: #ffffff;
+			--fg: #1a2332;
+			--fg-secondary: #6b7280;
+			--muted: #738394;
+			--accent: #3b82f6;
+			--accent-hover: #2563eb;
+			--accent-light: #eff6ff;
+			--success: #10b981;
+			--success-light: #d1fae5;
+			--warning: #f59e0b;
+			--warning-light: #fef3c7;
+			--danger: #ef4444;
+			--border: #e5e7eb;
+			--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+			--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+			--radius: 16px;
+			--radius-sm: 10px;
+			--transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		}
+
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--bg: #0f172a;
+				--panel: #1e293b;
+				--fg: #f1f5f9;
+				--fg-secondary: #cbd5e1;
+				--muted: #94a3b8;
+				--accent: #60a5fa;
+				--accent-hover: #3b82f6;
+				--accent-light: #1e3a8a;
+				--border: #334155;
+				--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+				--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+			}
+		}
+
+		html[data-theme="dark"] {
+			--bg: #0f172a;
+			--panel: #1e293b;
+			--fg: #f1f5f9;
+			--fg-secondary: #cbd5e1;
+			--muted: #94a3b8;
+			--accent: #60a5fa;
+			--accent-hover: #3b82f6;
+			--accent-light: #1e3a8a;
+			--border: #334155;
+			--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+			--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+		}
+
+		html[data-theme="light"] {
+			--bg: #fafbfc;
+			--panel: #ffffff;
+			--fg: #1a2332;
+			--fg-secondary: #6b7280;
+			--muted: #738394;
+			--accent: #3b82f6;
+			--accent-hover: #2563eb;
+			--accent-light: #eff6ff;
+			--border: #e5e7eb;
+			--shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+			--shadow-lg: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+		}
+
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			background: linear-gradient(160deg, #f0f4f8 0%, #e8f0fe 50%, #f5f3ff 100%);
+			font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+			color: var(--fg);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 24px;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			body {
+				background: linear-gradient(160deg, #0f172a 0%, #1a2f5e 50%, #2a1f4a 100%);
+			}
+		}
+
+		html[data-theme="light"] body {
+			background: linear-gradient(160deg, #f0f4f8 0%, #e8f0fe 50%, #f5f3ff 100%);
+		}
+
+		html[data-theme="dark"] body {
+			background: linear-gradient(160deg, #0f172a 0%, #1a2f5e 50%, #2a1f4a 100%);
+		}
+
+		.main {
+			max-width: 600px;
+			width: 100%;
+			animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; transform: translateY(16px); }
+			to { opacity: 1; transform: translateY(0); }
+		}
+
+		.hero {
+			text-align: center;
+			margin-bottom: 32px;
+		}
+
+		.hero-icon {
+			width: 80px;
+			height: 80px;
+			background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+			border-radius: 24px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto 20px;
+			font-size: 40px;
+			box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+			animation: float 3s ease-in-out infinite;
+		}
+
+		.hero-icon .material-symbols-outlined {
+			font-size: 48px;
+			color: white;
+		}
+
+		@keyframes float {
+			0%, 100% { transform: translateY(0); }
+			50% { transform: translateY(-6px); }
+		}
+
+		.hero h1 {
+			font-size: 28px;
+			font-weight: 800;
+			letter-spacing: -0.5px;
+			margin-bottom: 8px;
+			background: linear-gradient(135deg, var(--fg) 0%, #4b5563 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.hero-sub {
+			color: var(--fg-secondary);
+			font-size: 15px;
+			font-weight: 500;
+		}
+
+		.blocked-site {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			background: var(--panel);
+			border: 1px solid var(--border);
+			padding: 8px 14px;
+			border-radius: 8px;
+			font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+			font-size: 13px;
+			font-weight: 600;
+			color: var(--danger);
+			margin-top: 12px;
+		}
+
+		.blocked-site .material-symbols-outlined {
+			font-size: 16px;
+		}
+
+		.motivation-card {
+			background: var(--panel);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+			padding: 24px;
+			margin-bottom: 24px;
+			box-shadow: var(--shadow);
+			text-align: center;
+		}
+
+		.quote {
+			font-size: 18px;
+			font-weight: 600;
+			color: var(--fg);
+			line-height: 1.5;
+			margin-bottom: 12px;
+		}
+
+		.quote::before { content: """; color: var(--accent); font-size: 24px; }
+		.quote::after { content: """; color: var(--accent); font-size: 24px; }
+
+		.quote-author {
+			font-size: 13px;
+			color: var(--fg-secondary);
+			font-weight: 500;
+		}
+
+		.breathing {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			margin: 24px 0;
+		}
+
+		.breathing-ring {
+			width: 60px;
+			height: 60px;
+			border: 3px solid var(--accent);
+			border-radius: 50%;
+			animation: breathe 4s ease-in-out infinite;
+			margin-bottom: 8px;
+		}
+
+		@keyframes breathe {
+			0%, 100% { transform: scale(0.9); opacity: 0.5; }
+			50% { transform: scale(1.2); opacity: 0.2; }
+		}
+
+		.breathing-text {
+			font-size: 12px;
+			font-weight: 600;
+			color: var(--fg-secondary);
+		}
+
+		@media (max-width: 500px) {
+			.hero h1 {
+				font-size: 24px;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="main">
+		<div class="hero">
+			<div class="hero-icon"><span class="material-symbols-outlined">target</span></div>
+			<h1>Stay in the Zone</h1>
+			<p class="hero-sub">Focus mode is active. You've got this!</p>
+			<div class="blocked-site" id="blocked-site"><span class="material-symbols-outlined">block</span><span id="blocked-site-text">example.com</span></div>
+		</div>
+
+		<div class="motivation-card">
+			<div class="quote" id="quote">The secret of getting ahead is getting started.</div>
+			<div class="quote-author" id="quote-author">— Mark Twain</div>
+		</div>
+
+		<div class="breathing" id="breathing" style="display: none;">
+			<div class="breathing-ring"></div>
+			<div class="breathing-text">Take a breath. Reset your focus.</div>
+		</div>
+	</div>
+
+	<script src="blocked.js"></script>
+</body>
+</html>
