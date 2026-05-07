@@ -1,46 +1,32 @@
-import { STORAGE_KEYS, DEFAULT_ALLOWLIST_NAME, BLOCKING_STRATEGY } from '../shared/constants.js';
+import { STORAGE_KEYS, DEFAULT_ALLOWLIST_NAME, CONTROL_FILE, CONTROL_INTERVAL_MINUTES } from '../shared/constants.js';
 import { AllowlistRepository } from '../utils/allowlist-repository.js';
 import { RulesEngine } from '../utils/rules-engine.js';
 import { InputClassifier, isUrlAllowed, getRegistrableDomainFromHost } from '../utils/classifier.js';
 import { Analytics } from '../utils/analytics.js';
+import { IpcController } from '../utils/ipc-controller.js';
 
 const repo = new AllowlistRepository();
 const rules = new RulesEngine();
 const classifier = new InputClassifier();
 const analytics = new Analytics();
+const ipc = new IpcController(repo);
 
-class SessionScheduler {
-	async init() {
-		// No-op: sessions removed
-	}
-}
+// ── Blocking detection ───────────────────────────────────────────────────────
+// We use webNavigation to intercept navigations and redirect to our blocked page.
+// This gives a beautiful UX (quotes, stats, breathing exercise) instead of
+// Chrome's ugly ERR_BLOCKED_BY_CLIENT page.
 
-const scheduler = new SessionScheduler();
+function setupBlocking() {
+	// Track allowed site visits (time spent on allowed sites)
+	let visitTimers = new Map();  // tabId -> { hostname, startTime }
 
-function setupChromeBlockingDetection() {
-	chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
-		if (details.frameId !== 0) return;
-		if (details.error === 'net::ERR_BLOCKED_BY_CLIENT') {
-			try {
-				const url = new URL(details.url);
-				const hostname = url.hostname;
-				const state = await repo.getState();
-				if (state.enabled) {
-					await analytics.trackBlockedSite(hostname);
-				}
-			} catch (e) {
-				// Silently fail
-			}
-		}
-	}, { urls: ['<all_urls>'] });
-}
-
-function setupBrowserAgnosticBlockingDetection() {
 	chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 		if (details.frameId !== 0) return;
 		const url = details.url;
 		if (!url.startsWith('http://') && !url.startsWith('https://')) return;
-		if (url.includes(chrome.runtime.id) || url.includes('blocked.html')) return;
+
+		// Don't intercept our own pages
+		if (url.includes(chrome.runtime.id)) return;
 
 		try {
 			const state = await repo.getState();
@@ -52,75 +38,153 @@ function setupBrowserAgnosticBlockingDetection() {
 			const hostname = new URL(url).hostname;
 			await analytics.trackBlockedSite(hostname);
 
-			const blockedPageUrl = chrome.runtime.getURL(`src/blocked/blocked.html?site=${encodeURIComponent(hostname)}`);
+			const blockedUrl = chrome.runtime.getURL(
+				`src/blocked/blocked.html?site=${encodeURIComponent(hostname)}&r=${Date.now()}`
+			);
 
 			if (details.tabId && details.tabId > 0) {
-				await chrome.tabs.update(details.tabId, { url: blockedPageUrl });
+				await chrome.tabs.update(details.tabId, { url: blockedUrl });
 			}
 		} catch (e) {
-			// Continue gracefully on error
+			// Silently continue — don't break navigation on error
 		}
 	}, { urls: ['<all_urls>'] });
+
+	// Track navigation completion for allowed sites (analytics)
+	chrome.webNavigation.onCompleted.addListener(async (details) => {
+		if (details.frameId !== 0) return;
+		const url = details.url;
+		if (!url.startsWith('http://') && !url.startsWith('https://')) return;
+
+		try {
+			const state = await repo.getState();
+			if (!state.enabled) return;
+
+			const entries = state.allowlists[state.current] || [];
+			if (isUrlAllowed(url, entries)) {
+				const hostname = new URL(url).hostname;
+				// Start a timer for this tab
+				if (details.tabId && details.tabId > 0) {
+					visitTimers.set(details.tabId, { hostname, startTime: Date.now() });
+				}
+			}
+		} catch (e) {
+			// Silently continue
+		}
+	}, { urls: ['<all_urls>'] });
+
+	// Track tab removal to record visit duration
+	chrome.tabs.onRemoved.addListener(async (tabId) => {
+		const visit = visitTimers.get(tabId);
+		if (visit) {
+			const duration = Date.now() - visit.startTime;
+			await analytics.trackAllowedSiteVisit(visit.hostname, duration);
+			visitTimers.delete(tabId);
+		}
+	});
 }
 
-let blockingDetectionInitialized = false;
-
-function initBlockingDetection() {
-	if (blockingDetectionInitialized) return;
-	blockingDetectionInitialized = true;
-
-	if (BLOCKING_STRATEGY === 'chrome') {
-		setupChromeBlockingDetection();
-	} else {
-		setupBrowserAgnosticBlockingDetection();
-	}
-}
+// ── Badge update ─────────────────────────────────────────────────────────────
 
 async function rebuildFromCurrent() {
 	const state = await repo.getState();
 	const entries = state.allowlists[state.current] || [];
+
 	if (state.enabled) {
-		await rules.rebuildFor(entries);
-		const count = entries.length;
-		await chrome.action.setBadgeText({ text: count > 0 ? String(count) : '' });
-		await chrome.action.setBadgeBackgroundColor({ color: '#4f8cff' });
+		await chrome.action.setBadgeText({ text: entries.length > 0 ? String(entries.length) : '' });
+		await chrome.action.setBadgeBackgroundColor({ color: '#3b82f6' });
 	} else {
-		const disabledMarker = Object.assign([], { __disabled__: true });
-		await rules.rebuildFor(disabledMarker);
 		await chrome.action.setBadgeText({ text: 'OFF' });
 		await chrome.action.setBadgeBackgroundColor({ color: '#6b7280' });
 	}
 }
 
+// ── Initialization ───────────────────────────────────────────────────────────
+
 chrome.runtime.onInstalled.addListener(async () => {
 	try {
 		await repo.init();
-		await scheduler.init();
 		await rebuildFromCurrent();
-		initBlockingDetection();
+		setupBlocking();
+
+		// Start the IPC file watcher
+		await ipc.start();
+
+		// On startup, immediately check for pending IPC commands
+		await ipc.checkForCommands();
 	} catch (e) {
-		// Extension initialization completed with best effort
+		console.error('AllowList init error:', e);
 	}
 });
 
+// Also try to start on extension load (service worker may be woken after idle)
 (async () => {
 	try {
 		await repo.getState();
-		initBlockingDetection();
+		setupBlocking();
+		await ipc.start();
+		await ipc.checkForCommands();
 	} catch (e) {
 		// Continue gracefully
 	}
 })();
 
+// ── Storage changes ──────────────────────────────────────────────────────────
+
 chrome.storage.onChanged.addListener(async (changes, area) => {
 	try {
-		if (area === 'sync' && (changes[STORAGE_KEYS.ALLOWLISTS] || changes[STORAGE_KEYS.CURRENT] || changes[STORAGE_KEYS.ENABLED])) {
+		if (area === 'sync') {
+			if (changes[STORAGE_KEYS.ALLOWLISTS] || changes[STORAGE_KEYS.CURRENT] || changes[STORAGE_KEYS.ENABLED]) {
+				await rebuildFromCurrent();
+			}
+		}
+	} catch (e) {
+		// Continue gracefully
+	}
+});
+
+// ── Keyboard shortcuts ───────────────────────────────────────────────────────
+
+chrome.commands.onCommand.addListener(async (command) => {
+	try {
+		if (command === 'add-current-site') {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (!tab || !tab.url) return;
+			const entry = inferEntryFromUrl(tab.url);
+			if (!entry) return;
+			await repo.addEntryToCurrent(entry);
+			await rebuildFromCurrent();
+			if (tab.id != null) {
+				// Flash badge to confirm
+				await chrome.action.setBadgeText({ text: '+', tabId: tab.id });
+				await chrome.action.setBadgeBackgroundColor({ color: '#10b981', tabId: tab.id });
+				setTimeout(() => {
+					rebuildFromCurrent().catch(() => {});
+				}, 1200);
+			}
+		}
+
+		if (command === 'cycle-allowlist') {
+			const state = await repo.getState();
+			const names = Object.keys(state.allowlists);
+			if (names.length === 0) return;
+			const idx = names.indexOf(state.current);
+			const next = names[(idx + 1) % names.length];
+			await repo.setCurrent(next);
+			await rebuildFromCurrent();
+		}
+
+		if (command === 'toggle-allowlist') {
+			const state = await repo.getState();
+			await repo.setEnabled(!state.enabled);
 			await rebuildFromCurrent();
 		}
 	} catch (e) {
-		// Continue gracefully on storage change error
+		// Command handler error — continue
 	}
 });
+
+// ── Message handling (popup ↔ background & external scripts) ─────────────────
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 	(async () => {
@@ -139,6 +203,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 				case 'set_current': {
 					await repo.setCurrent(msg.payload);
 					sendResponse({ ok: true });
+					break;
+				}
+				case 'toggle': {
+					const state = await repo.getState();
+					await repo.setEnabled(!state.enabled);
+					sendResponse({ ok: true, enabled: !state.enabled });
 					break;
 				}
 				case 'set_enabled': {
@@ -198,10 +268,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 				case 'get_stats': {
 					const state = await repo.getState();
 					const list = state.allowlists[state.current] || [];
-					const stats = {
-						total: list.length,
-						byType: { domain: 0, subdomain: 0, url: 0, tld: 0, origin: 0, host: 0 }
-					};
+					const stats = { total: list.length, byType: { domain: 0, subdomain: 0, url: 0, tld: 0, origin: 0, host: 0 } };
 					list.forEach(e => { if (stats.byType.hasOwnProperty(e.type)) stats.byType[e.type]++; });
 					sendResponse(stats);
 					break;
@@ -229,6 +296,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 					sendResponse({ allowed, enabled: state.enabled });
 					break;
 				}
+				case 'get_block_page_settings': {
+					const state = await repo.getState();
+					const blockedPageState = { enabled: state.enabled, currentList: state.current };
+					sendResponse(blockedPageState);
+					break;
+				}
+				case 'get_active_session': {
+					// Sessions removed in v2 — return null
+					sendResponse(null);
+					break;
+				}
 				default:
 					sendResponse({ ok: false, error: 'unknown message' });
 			}
@@ -239,3 +317,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 	})();
 	return true;
 });
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function inferEntryFromUrl(urlString) {
+	try {
+		const u = new URL(urlString);
+		return { type: 'domain', value: getRegistrableDomainFromHost(u.hostname) };
+	} catch {
+		return null;
+	}
+}

@@ -93,6 +93,27 @@ function updateDarkModeButton() {
 async function init() {
 	try {
 		initDarkMode();
+
+		// ── Check for URL-based commands (from bash / Raycast scripts) ──
+		const urlParams = new URLSearchParams(window.location.search);
+		const cmd = urlParams.get('cmd');
+		const value = urlParams.get('value') || '';
+
+		if (cmd) {
+			// Process command via background
+			try {
+				await processUrlCommand(cmd, value);
+			} catch (e) {
+				console.error('Command error:', e);
+			}
+			// Try to close this tab — works if opened via make new tab
+			setTimeout(() => {
+				window.location.href = 'about:blank';
+				try { window.close(); } catch(e) {}
+			}, 200);
+			return;
+		}
+
 		state = await send("get_state");
 		if (!state) {
 			UIErrorHandler.showError($("#content"), "Failed to load settings. Please try refreshing.");
@@ -105,6 +126,66 @@ async function init() {
 		syncToggle();
 	} catch (e) {
 		UIErrorHandler.showError($("#content"), "Initialization error");
+	}
+}
+
+/** Process commands sent via URL parameters (scriptable IPC). */
+async function processUrlCommand(cmd, value) {
+	const sendToBg = (type, payload) => chrome.runtime.sendMessage({ type, payload });
+
+	switch (cmd) {
+		case 'toggle': {
+			const res = await sendToBg('toggle');
+			console.log('AllowList:', res?.ok ? 'Toggled' : 'Failed');
+			break;
+		}
+		case 'enable': {
+			await sendToBg('set_enabled', true);
+			console.log('AllowList: Enabled');
+			break;
+		}
+		case 'disable': {
+			await sendToBg('set_enabled', false);
+			console.log('AllowList: Disabled');
+			break;
+		}
+		case 'set_list': {
+			if (value) {
+				await sendToBg('set_current', decodeURIComponent(value));
+				console.log('AllowList: Switched list');
+			}
+			break;
+		}
+		case 'add_site': {
+			const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+			if (tab?.url) {
+				// Infer domain from URL
+				const u = new URL(tab.url);
+				const parts = u.hostname.split('.').filter(Boolean);
+				let domain = u.hostname;
+				if (parts.length > 2) {
+					const twoLevel = new Set(['co.uk','com.au','co.jp','co.in','com.br','co.kr','com.sg','com.cn','com.tw','com.mx','co.za']);
+					const last2 = parts.slice(-2).join('.');
+					domain = twoLevel.has(last2) ? parts.slice(-3).join('.') : last2;
+				}
+				await sendToBg('add_entry_current', { type: 'domain', value: domain });
+				console.log('AllowList: Added current site');
+			}
+			break;
+		}
+		case 'cycle_list': {
+			const oldState = await sendToBg('get_state');
+			if (oldState) {
+				const names = Object.keys(oldState.allowlists);
+				const idx = names.indexOf(oldState.current);
+				const next = names[(idx + 1) % names.length];
+				await sendToBg('set_current', next);
+				console.log('AllowList: Cycled to', next);
+			}
+			break;
+		}
+		default:
+			console.warn('AllowList: Unknown command', cmd);
 	}
 }
 

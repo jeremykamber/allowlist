@@ -8,6 +8,12 @@ export const STORAGE_KEYS = {
 
 export const DEFAULT_ALLOWLIST_NAME = 'Scratchpad';
 
+// IPC file — bash scripts (e.g., Raycast focus-mode.sh) write JSON here
+// to control the extension without needing Chrome extension messaging.
+// The extension watches this file via an alarm every 2 seconds.
+export const CONTROL_FILE = '.allowlist-control.json';
+export const CONTROL_INTERVAL_MINUTES = 1 / 30; // 2 seconds
+
 export const PRESET_ALLOWLISTS = {
 	'🎓 Learning': {
 		entries: [
@@ -41,7 +47,6 @@ export const PRESET_ALLOWLISTS = {
 	'🔬 Deep Work': {
 		entries: [
 			{ type: 'domain', value: 'github.com' },
-			{ type: 'domain', value: 'gitlab.com' },
 			{ type: 'domain', value: 'stackoverflow.com' },
 			{ type: 'domain', value: 'mdn.mozilla.org' },
 			{ type: 'domain', value: 'docs.google.com' },
@@ -71,5 +76,3 @@ export const PRESET_ALLOWLISTS = {
 		description: 'Academic and research resources'
 	},
 };
-
-export const BLOCKING_STRATEGY = 'agnostic';

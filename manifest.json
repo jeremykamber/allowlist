@@ -1,33 +1,56 @@
 {
   "name": "AllowList",
-  "description": "Block everything by default. Only allow sites you add. Manage your allowlists with an intuitive interface.",
-  "version": "1.0.0",
+  "description": "Block everything by default. Only allow sites you add. Scripting API for Focus Mode automation.",
+  "version": "2.0.0",
   "manifest_version": 3,
   "icons": {
-    "16": "allow_list_extension_icon_16.png",
-    "32": "allow_list_extension_icon_32.png",
-    "48": "allow_list_extension_icon_48.png",
-    "128": "allow_list_extension_icon_128.png"
+    "16": "assets/allow_list_extension_icon_16.png",
+    "32": "assets/allow_list_extension_icon_32.png",
+    "48": "assets/allow_list_extension_icon_48.png",
+    "128": "assets/allow_list_extension_icon_128.png"
   },
   "action": {
-    "default_title": "Allowlist",
+    "default_title": "AllowList",
     "default_popup": "src/popup/popup.html",
     "default_icons": {
-      "16": "allow_list_extension_icon_16.png",
-      "32": "allow_list_extension_icon_32.png",
-      "48": "allow_list_extension_icon_48.png",
-      "128": "allow_list_extension_icon_128.png"
+      "16": "assets/allow_list_extension_icon_16.png",
+      "32": "assets/allow_list_extension_icon_32.png",
+      "48": "assets/allow_list_extension_icon_48.png",
+      "128": "assets/allow_list_extension_icon_128.png"
     }
   },
   "background": {
     "service_worker": "src/background/background.js",
     "type": "module"
   },
+  "commands": {
+    "add-current-site": {
+      "description": "Add current site to active allowlist",
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      }
+    },
+    "cycle-allowlist": {
+      "description": "Switch to next saved allowlist",
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      }
+    },
+    "toggle-allowlist": {
+      "description": "Toggle AllowList on/off",
+      "suggested_key": {
+        "default": "Ctrl+Shift+F",
+        "mac": "Command+Shift+F"
+      }
+    }
+  },
   "permissions": [
-    "declarativeNetRequest",
     "storage",
     "tabs",
-    "webNavigation"
+    "webNavigation",
+    "alarms"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -36,15 +59,10 @@
     {
       "resources": [
         "src/blocked/blocked.html",
-        "src/blocked/blocked.js"
+        "src/blocked/blocked.js",
+        "assets/*"
       ],
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     }
-  ],
-  "options_ui": {
-    "page": "src/popup/popup.html",
-    "open_in_tab": true
-  }
+  ]
 }
