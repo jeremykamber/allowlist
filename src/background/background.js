@@ -1,15 +1,13 @@
-import { STORAGE_KEYS, DEFAULT_ALLOWLIST_NAME, CONTROL_FILE, CONTROL_INTERVAL_MINUTES } from '../shared/constants.js';
+import { STORAGE_KEYS, DEFAULT_ALLOWLIST_NAME } from '../shared/constants.js';
 import { AllowlistRepository } from '../utils/allowlist-repository.js';
 import { RulesEngine } from '../utils/rules-engine.js';
 import { InputClassifier, isUrlAllowed, getRegistrableDomainFromHost } from '../utils/classifier.js';
 import { Analytics } from '../utils/analytics.js';
-import { IpcController } from '../utils/ipc-controller.js';
 
 const repo = new AllowlistRepository();
 const rules = new RulesEngine();
 const classifier = new InputClassifier();
 const analytics = new Analytics();
-const ipc = new IpcController(repo);
 
 // ── Blocking detection ───────────────────────────────────────────────────────
 // We use webNavigation to intercept navigations and redirect to our blocked page.
@@ -107,11 +105,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 		await rebuildFromCurrent();
 		setupBlocking();
 
-		// Start the IPC file watcher
-		await ipc.start();
-
-		// On startup, immediately check for pending IPC commands
-		await ipc.checkForCommands();
+		// IPC is URL-based — processed when popup.html is opened with ?cmd= parameter.
+		// No background watcher needed.
 	} catch (e) {
 		console.error('AllowList init error:', e);
 	}
@@ -122,8 +117,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 	try {
 		await repo.getState();
 		setupBlocking();
-		await ipc.start();
-		await ipc.checkForCommands();
+		// IPC is URL-based (popup.html?cmd=...)
+		// No background watcher needed.
 	} catch (e) {
 		// Continue gracefully
 	}
