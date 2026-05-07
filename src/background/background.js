@@ -24,6 +24,37 @@ function setupBlocking() {
 		// Don't intercept our own pages
 		if (url.includes(chrome.runtime.id)) return;
 
+		// ── Control URL handler (scriptable from bash via simple navigation) ──
+		// Navigate to https://allowlist.ctrl/<command> to control the extension.
+		// The extension intercepts before DNS resolution and processes the command.
+		// Commands: toggle, enable, disable, set_list/<name>, add_site
+		if (url.startsWith('https://allowlist.ctrl/')) {
+			const path = url.replace('https://allowlist.ctrl/', '').split('?')[0].split('/');
+			const cmd = path[0];
+			const val = decodeURIComponent(path.slice(1).join('/') || '');
+
+			try {
+				if (cmd === 'toggle') {
+					const s = await repo.getState();
+					await repo.setEnabled(!s.enabled);
+				} else if (cmd === 'enable') {
+					await repo.setEnabled(true);
+				} else if (cmd === 'disable') {
+					await repo.setEnabled(false);
+				} else if (cmd === 'set_list' && val) {
+					await repo.setCurrent(val);
+				}
+			} catch (e) {
+				// Command failed silently
+			}
+
+			// Redirect away immediately
+			if (details.tabId && details.tabId > 0) {
+				chrome.tabs.update(details.tabId, { url: 'about:blank' }).catch(() => {});
+			}
+			return;
+		}
+
 		try {
 			const state = await repo.getState();
 			if (!state.enabled) return;
