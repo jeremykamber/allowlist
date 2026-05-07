@@ -33,8 +33,8 @@ const queryTabs = (query) =>
 // Replace these with your own email or form URL for production.
 // Using mailto: links — feedback goes straight to your inbox.
 const CONFIG = {
-  feedbackEmail: 'kamberj@uw.edu',
-  bugEmail: 'kamberj@uw.edu',
+  feedbackEmail: 'jeremy@bringforthstudio.com',
+  bugEmail: 'jeremy@bringforthstudio.com',
 };
 
 function mailtoFeedback() {

@@ -20,8 +20,8 @@ const send = (type, payload) =>
 // ── Configuration ──────────────────────────────────────────────────────────
 // Matches popup config. Replace with your email or form URL.
 const CONFIG = {
-  feedbackEmail: 'kamberj@uw.edu',
-  bugEmail: 'kamberj@uw.edu',
+  feedbackEmail: 'jeremy@bringforthstudio.com',
+  bugEmail: 'jeremy@bringforthstudio.com',
 };
 
 function mailto(url) {
