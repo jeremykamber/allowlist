@@ -14,27 +14,27 @@
 }
 
 :root {
-  /* Brand */
+  /* Brand - Trust Blue */
   --brand-hue: 217;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-active: #1d4ed8;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-active: #1e40af;
   --accent-light: #eff6ff;
   --accent-subtle: #dbeafe;
-  --accent-glow: rgba(59, 130, 246, 0.25);
+  --accent-glow: rgba(37, 99, 235, 0.2);
 
   /* Semantic */
-  --success: #10b981;
+  --success: #059669;
   --success-light: #d1fae5;
-  --warning: #f59e0b;
+  --warning: #d97706;
   --warning-light: #fef3c7;
-  --danger: #ef4444;
+  --danger: #dc2626;
   --danger-light: #fee2e2;
 
-  /* Neutral */
+  /* Neutral — WCAG AA compliant (#475569 = 6.5:1 on white, #1e293b = 13.5:1) */
   --fg: #0f172a;
-  --fg-secondary: #64748b;
-  --fg-tertiary: #94a3b8;
+  --fg-secondary: #475569;
+  --fg-tertiary: #64748b;
   --bg: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
@@ -75,12 +75,12 @@ html[data-theme="dark"] {
   --accent-subtle: #1e3a5f;
   --accent-glow: rgba(96, 165, 250, 0.2);
 
-  --fg: #f1f5f9;
-  --fg-secondary: #94a3b8;
-  --fg-tertiary: #64748b;
+  --fg: #f8fafc;
+  --fg-secondary: #cbd5e1;
+  --fg-tertiary: #94a3b8;
   --bg: #0f172a;
   --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
+  --bg-tertiary: #1e293b;
   --border: #334155;
   --border-hover: #475569;
 
@@ -91,19 +91,19 @@ html[data-theme="dark"] {
 }
 
 html[data-theme="light"] {
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-active: #1d4ed8;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-active: #1e40af;
   --accent-light: #eff6ff;
   --accent-subtle: #dbeafe;
-  --accent-glow: rgba(59, 130, 246, 0.25);
+  --accent-glow: rgba(37, 99, 235, 0.2);
 
   --fg: #0f172a;
-  --fg-secondary: #64748b;
-  --fg-tertiary: #94a3b8;
+  --fg-secondary: #475569;
+  --fg-tertiary: #64748b;
   --bg: #ffffff;
   --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f7;
+  --bg-tertiary: #f1f5f9;
   --border: #e2e8f0;
   --border-hover: #cbd5e1;
 
@@ -133,6 +133,8 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg);
+  position: relative;
+  overflow: hidden;
 }
 
 /* ── Header ─────────────────────────────────────────────────────────────── */
@@ -210,7 +212,8 @@ body {
   cursor: pointer;
   inset: 0;
   background: var(--border-hover);
-  transition: var(--transition);
+  transition: background var(--duration-normal) var(--ease),
+              box-shadow var(--duration-fast) var(--ease);
   border-radius: 10px;
 }
 
@@ -222,7 +225,7 @@ body {
   left: 2px;
   bottom: 2px;
   background: white;
-  transition: var(--transition);
+  transition: transform var(--duration-normal) var(--ease);
   border-radius: 50%;
   box-shadow: var(--shadow-xs);
 }
@@ -1071,6 +1074,21 @@ body {
   }
 }
 
+/* ── Reduced Motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .modal-card { transform: none !important; }
+  .custom-select-menu { transform: none !important; }
+  .toast { animation: none !important; }
+  .error-state { animation: none !important; }
+}
+
 /* ── Focus ring for keyboard navigation ─────────────────────────────────── */
 
 :focus-visible {
@@ -1078,6 +1096,7 @@ body {
   outline-offset: 2px;
 }
 button:focus:not(:focus-visible),
-input:focus:not(:focus-visible) {
+input:focus:not(:focus-visible),
+[tabindex]:focus:not(:focus-visible) {
   outline: none;
 }

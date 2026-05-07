@@ -255,11 +255,13 @@ function renderAllowlists() {
     else openDropdown();
   };
 
-  // Click outside closes
-  document.addEventListener('click', (ev) => {
-    const wrapper = $('#list-select');
-    if (!wrapper.contains(ev.target)) closeDropdown();
-  });
+  // Manage-list button
+  const manageBtn = $('#manage-list-btn');
+  if (manageBtn) manageBtn.onclick = (e) => {
+    e.stopPropagation();
+    closeDropdown();
+    openManageModal();
+  };
 }
 
 function buildListOrder(names) {
@@ -631,6 +633,7 @@ async function updateTypeChip() {
   } else {
     chip.textContent = '?';
     chip.classList.remove('has-type');
+    chip.style.color = '';
   }
 }
 
@@ -785,6 +788,15 @@ $$('.modal').forEach((modal) => {
   const bg = modal.querySelector('.modal-bg');
   if (bg) {
     bg.addEventListener('click', () => modal.classList.add('hidden'));
+  }
+});
+
+// ── Close dropdown when clicking outside ────────────────────────────────────
+
+document.addEventListener('click', (ev) => {
+  const wrapper = $('#list-select');
+  if (wrapper && !wrapper.contains(ev.target)) {
+    closeDropdown();
   }
 });
 
