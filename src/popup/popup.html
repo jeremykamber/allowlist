@@ -1,171 +1,219 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8" />
-  <title>Allowlist</title>
+  <title>AllowList</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" />
-  <link rel="stylesheet" href="../../popup.css" />
+  <link rel="stylesheet" href="popup.css" />
 </head>
-
 <body>
   <div class="wrap">
-    <!-- Header -->
+    <!-- ═══ Header ═══ -->
     <header class="header">
       <div class="header-left">
-        <img src="../../allow_list_extension_logo_icon.png" alt="Allowlist" class="header-icon" />
-        <h1 class="header-title" id="header-greeting">Allowlist</h1>
+        <img src="../../assets/allow_list_extension_logo_icon.png" alt="AllowList" class="header-icon" />
+        <span class="header-title" id="header-greeting">AllowList</span>
+        <span class="header-badge">v2</span>
       </div>
-      <button id="dark-mode-toggle" class="icon-btn" title="Toggle dark mode"><span
-          class="material-symbols-outlined">brightness_4</span></button>
-      <label class="switch">
-        <input type="checkbox" id="enabled-toggle" />
-        <span class="slider"></span>
-      </label>
+      <div class="header-actions">
+        <button id="dark-mode-toggle" class="icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
+          <span class="material-symbols-outlined">brightness_4</span>
+        </button>
+        <label class="switch" aria-label="Toggle AllowList on or off">
+          <input type="checkbox" id="enabled-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- ═══ Content ═══ -->
     <div class="content" id="content">
-      <!-- Allowlist Selector -->
-      <div class="list-selector-section">
-        <label class="list-label">Active List</label>
+
+      <!-- List Selector -->
+      <section class="list-selector-section">
+        <span class="list-label">Active List</span>
         <div class="list-selector-wrapper">
-          <div id="list-select" class="custom-select" tabindex="0" aria-haspopup="listbox">
-            <button id="list-select-btn" class="custom-select-btn" aria-expanded="false">Scratchpad</button>
-            <div id="list-select-menu" class="custom-select-menu hidden" role="listbox" tabindex="-1"></div>
+          <div id="list-select" class="custom-select" aria-haspopup="listbox">
+            <button id="list-select-btn" class="custom-select-btn" aria-expanded="false">
+              Scratchpad
+            </button>
+            <div id="list-select-menu" class="custom-select-menu hidden" role="listbox"></div>
           </div>
-          <div style="display:flex; gap:8px;">
-            <button id="new-list-btn" class="new-list-btn" title="Create new list">+</button>
-            <button id="manage-list-btn" class="new-list-btn" title="Manage list">⋯</button>
-          </div>
+          <button id="new-list-btn" class="action-btn" title="Create new list" aria-label="Create new list">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <button id="manage-list-btn" class="action-btn" title="Manage current list" aria-label="Manage current list">
+            <span class="material-symbols-outlined">more_horiz</span>
+          </button>
         </div>
-      </div>
+      </section>
 
       <!-- Quick Actions -->
-      <div class="quick-actions">
-        <button id="quick-add-site" class="btn primary small">+ Current Site</button>
-        <button id="quick-add-domain" class="btn secondary small">+ Current Domain</button>
-      </div>
+      <section class="quick-actions">
+        <button id="quick-add-site" class="btn primary sm">
+          <span class="material-symbols-outlined" style="font-size:14px;">add_circle</span>
+          Current Site
+        </button>
+        <button id="quick-add-domain" class="btn secondary sm">
+          <span class="material-symbols-outlined" style="font-size:14px;">language</span>
+          Current Domain
+        </button>
+      </section>
 
       <!-- Add Entry -->
-      <div class="add-entry">
-        <div class="input-chip" id="type-chip">Type</div>
-        <input id="add-input" type="text" placeholder="Add domain or URL" class="add-input" />
-        <button id="add-btn" class="btn primary small">Add</button>
-      </div>
+      <section class="add-entry-section">
+        <span class="add-entry-label">Add Entry</span>
+        <form id="add-entry-form" class="add-entry">
+          <span class="input-chip" id="type-chip">Type</span>
+          <input id="add-input" type="text" placeholder="e.g. youtube.com or .com" class="add-input" autocomplete="off" spellcheck="false" />
+          <button id="add-btn" type="submit" class="btn primary sm">Add</button>
+        </form>
+      </section>
 
       <!-- Entries List -->
-      <ul id="entries" class="entries-list"></ul>
-      <div id="empty-state" class="empty-state hidden">
-        <div class="empty-icon">✨</div>
-        <div class="empty-text">No sites yet</div>
-        <div class="empty-sub">Add your first allowed site</div>
-      </div>
+      <section class="entries-section">
+        <div class="entries-header">
+          <span class="entries-label">Allowed Sites</span>
+          <span class="entries-count" id="entries-count">0 entries</span>
+        </div>
+        <ul id="entries" class="entries-list"></ul>
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-icon">🛡️</div>
+          <div class="empty-text">No sites allowed</div>
+          <div class="empty-sub">Add a domain or URL above to allow it</div>
+        </div>
+      </section>
 
-      <!-- Footer -->
-      <div class="footer">
-        <a id="feedback-btn" href="https://cerulean-lightyear-07d.notion.site/2ce5b818c71581dbaae2f92f5ea6c316?pvs=105"
-          target="_blank" rel="noopener noreferrer" class="btn secondary small footer-btn">💬 Send Feedback</a>
-      </div>
+    </div>
+
+    <!-- ═══ Footer ═══ -->
+    <div class="footer">
+      <a id="feedback-btn"
+         href="https://cerulean-lightyear-07d.notion.site/2ce5b818c71581dbaae2f92f5ea6c316?pvs=105"
+         target="_blank" rel="noopener noreferrer" class="footer-btn">
+        Send Feedback
+      </a>
     </div>
   </div>
 
-  <!-- Modals -->
+  <!-- ═══ Templates ═══ -->
+  <template id="entry-tpl">
+    <li class="entry-item">
+      <span class="entry-type"></span>
+      <span class="entry-value"></span>
+      <span class="entry-actions">
+        <button class="entry-action-btn entry-copy" title="Copy to clipboard" aria-label="Copy">
+          <span class="material-symbols-outlined">content_copy</span>
+        </button>
+        <button class="entry-action-btn entry-edit" title="Edit entry" aria-label="Edit">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+        <button class="entry-action-btn entry-delete danger" title="Remove entry" aria-label="Remove">
+          <span class="material-symbols-outlined">remove_circle</span>
+        </button>
+      </span>
+    </li>
+  </template>
 
-  <div id="edit-entry-modal" class="modal hidden">
+  <!-- ═══ Modals ═══ -->
+
+  <!-- Edit Entry -->
+  <div id="edit-entry-modal" class="modal hidden" role="dialog" aria-label="Edit entry">
     <div class="modal-bg"></div>
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Edit Entry</div>
-        <button class="modal-close" id="edit-entry-close">✕</button>
+        <span class="modal-title">Edit Entry</span>
+        <button class="modal-close" id="edit-entry-close" aria-label="Close">&times;</button>
       </div>
-      <div style="display: flex; gap: 12px; flex-direction: column;">
+      <form id="edit-entry-form" class="modal-body">
         <div>
-          <label
-            style="display: block; font-size: 12px; color: var(--fg-secondary); font-weight: 600; margin-bottom: 8px;">Value</label>
-          <input id="edit-entry-value" type="text"
-            style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font: inherit; font-size: 13px; font-family: 'Monaco', 'Courier New', monospace;">
+          <label class="modal-field-label" for="edit-entry-value">Value</label>
+          <input id="edit-entry-value" type="text" class="modal-input" placeholder="Enter a domain or URL" autocomplete="off" spellcheck="false" />
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button id="edit-entry-save" class="btn primary" style="flex: 1;">Save</button>
-          <button id="edit-entry-cancel" class="btn ghost" style="flex: 1;">Cancel</button>
+        <div class="modal-actions">
+          <button id="edit-entry-save" type="submit" class="btn primary" style="flex:1;">Save</button>
+          <button id="edit-entry-cancel" type="button" class="btn ghost" style="flex:1;">Cancel</button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 
-  <!-- Manage List Modal -->
-  <div id="manage-list-modal" class="modal hidden">
+  <!-- Manage List -->
+  <div id="manage-list-modal" class="modal hidden" role="dialog" aria-label="Manage list">
     <div class="modal-bg"></div>
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Manage List</div>
-        <button class="modal-close" id="manage-list-close">✕</button>
+        <span class="modal-title">Manage List</span>
+        <button class="modal-close" id="manage-list-close" aria-label="Close">&times;</button>
       </div>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <div id="manage-current-name" style="font-weight:700;color:var(--fg);"></div>
-        <input id="manage-rename-input" type="text" placeholder="Rename list"
-          style="padding:10px;border:1px solid var(--border);border-radius:8px;font:inherit;">
-        <div style="display:flex; gap:8px;">
+      <div class="modal-body">
+        <div>
+          <span class="modal-field-label">Current List</span>
+          <div id="manage-current-name" style="font-weight:700;font-size:14px;color:var(--fg);"></div>
+        </div>
+        <div>
+          <label class="modal-field-label" for="manage-rename-input">Rename</label>
+          <input id="manage-rename-input" type="text" class="modal-input" placeholder="New name" autocomplete="off" />
+        </div>
+        <div class="modal-actions">
           <button id="manage-rename-save" class="btn primary" style="flex:1;">Rename</button>
-          <button id="manage-save-as" class="btn secondary" style="flex:1;">Save as...</button>
-          <button id="manage-delete" class="btn ghost" style="flex:1;">Delete</button>
+          <button id="manage-save-as" class="btn secondary" style="flex:1;">Save As…</button>
+        </div>
+        <div class="modal-actions">
+          <button id="manage-delete" class="btn ghost" style="flex:1;color:var(--danger);">
+            <span class="material-symbols-outlined" style="font-size:14px;">delete</span>
+            Delete List
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="confirm-delete-modal" class="modal hidden">
+  <!-- Confirm Delete -->
+  <div id="confirm-delete-modal" class="modal hidden" role="dialog" aria-label="Confirm delete">
     <div class="modal-bg"></div>
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Delete List?</div>
+        <span class="modal-title">Delete List?</span>
       </div>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <div style="color:var(--fg-secondary);">This action will remove the list and its entries. This cannot be undone.
+      <div class="modal-body">
+        <div class="modal-warning">
+          This action will permanently remove the list and all its entries.
         </div>
-        <div style="display:flex; gap:8px;">
-          <button id="confirm-delete-yes" class="btn primary" style="flex:1;">Delete</button>
+        <div class="modal-actions">
+          <button id="confirm-delete-yes" class="btn primary" style="flex:1;background:var(--danger);">Delete</button>
           <button id="confirm-delete-no" class="btn ghost" style="flex:1;">Cancel</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="input-name-modal" class="modal hidden">
+  <!-- Input Name -->
+  <div id="input-name-modal" class="modal hidden" role="dialog" aria-label="Enter a name">
     <div class="modal-bg"></div>
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title" id="input-name-title">Name</div>
-        <button class="modal-close" id="input-name-close">✕</button>
+        <span class="modal-title" id="input-name-title">Name</span>
+        <button class="modal-close" id="input-name-close" aria-label="Close">&times;</button>
       </div>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <input id="input-name-value" type="text" placeholder="Name"
-          style="padding:10px;border:1px solid var(--border);border-radius:8px;font:inherit;">
-        <div style="display:flex; gap:8px;">
-          <button id="input-name-save" class="btn primary" style="flex:1;">Save</button>
-          <button id="input-name-cancel" class="btn ghost" style="flex:1;">Cancel</button>
+      <form id="input-name-form" class="modal-body">
+        <div>
+          <label class="modal-field-label" for="input-name-value">Enter a name</label>
+          <input id="input-name-value" type="text" class="modal-input" placeholder="Name" autocomplete="off" spellcheck="false" />
         </div>
-      </div>
+        <div class="modal-actions">
+          <button id="input-name-save" type="submit" class="btn primary" style="flex:1;">Save</button>
+          <button id="input-name-cancel" type="button" class="btn ghost" style="flex:1;">Cancel</button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- Toast -->
   <div id="toast" class="toast hidden" role="status" aria-live="polite" aria-atomic="true"></div>
-
-  <template id="entry-tpl">
-    <li class="entry-item">
-      <span class="entry-type"></span>
-      <span class="entry-value"></span>
-      <span class="entry-spacer"></span>
-      <button class="entry-edit" title="Edit"><span class="material-symbols-outlined">edit</span></button>
-      <button class="entry-copy" title="Copy"><span class="material-symbols-outlined">content_copy</span></button>
-      <button class="entry-delete" title="Delete"><span class="material-symbols-outlined">close</span></button>
-    </li>
-  </template>
 
   <script type="module" src="popup.js"></script>
 </body>
-
 </html>
