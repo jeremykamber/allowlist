@@ -29,6 +29,43 @@ const queryTabs = (query) =>
     }
   });
 
+// ── Configuration ──────────────────────────────────────────────────────────
+// Replace these with your own email or form URL for production.
+// Using mailto: links — feedback goes straight to your inbox.
+const CONFIG = {
+  feedbackEmail: 'kamberj@uw.edu',
+  bugEmail: 'kamberj@uw.edu',
+};
+
+function mailtoFeedback() {
+  const sub = encodeURIComponent('AllowList Feedback');
+  const body = encodeURIComponent(
+    '## Feedback\n\n' +
+    '(What do you like? What should change?)\n\n' +
+    '## Feature Request\n\n' +
+    '(What would make this better?)\n\n' +
+    '---\n' +
+    `AllowList v2.0`
+  );
+  window.open(`mailto:${CONFIG.feedbackEmail}?subject=${sub}&body=${body}`, '_blank');
+}
+
+function mailtoBug() {
+  const sub = encodeURIComponent('AllowList Bug Report');
+  const body = encodeURIComponent(
+    '## Describe the bug\n\n' +
+    '(What happened? What did you expect?)\n\n' +
+    '## Steps to reproduce\n\n' +
+    '1. \n2. \n3. \n\n' +
+    '## Environment\n\n' +
+    `- AllowList v2.0\n` +
+    `- Browser: ${navigator.userAgent}\n` +
+    '---\n' +
+    '(Delete or add details as needed)'
+  );
+  window.open(`mailto:${CONFIG.bugEmail}?subject=${sub}&body=${body}`, '_blank');
+}
+
 // ── State ──────────────────────────────────────────────────────────────────
 
 let state = null;
@@ -777,6 +814,11 @@ $('#enabled-toggle').addEventListener('change', async () => {
     toast('Error updating', { type: 'error' });
   }
 });
+
+// ── Feedback & bug report ─────────────────────────────────────────────────
+
+$('#feedback-btn').addEventListener('click', mailtoFeedback);
+$('#bug-btn').addEventListener('click', mailtoBug);
 
 // ── Dark mode toggle ───────────────────────────────────────────────────────
 

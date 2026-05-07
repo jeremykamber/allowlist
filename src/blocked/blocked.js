@@ -17,6 +17,35 @@ const send = (type, payload) =>
     }
   });
 
+// ── Configuration ──────────────────────────────────────────────────────────
+// Matches popup config. Replace with your email or form URL.
+const CONFIG = {
+  feedbackEmail: 'kamberj@uw.edu',
+  bugEmail: 'kamberj@uw.edu',
+};
+
+function mailto(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.click();
+}
+
+function mailtoFeedback() {
+  mailto(
+    `mailto:${CONFIG.feedbackEmail}?subject=${encodeURIComponent('AllowList Feedback')}` +
+    `&body=${encodeURIComponent('## Feedback\n\n(What do you like? What should change?)\n\n## Feature Request\n\n(What would make this better?)\n\n---\nAllowList v2.0')}`
+  );
+}
+
+function mailtoBug() {
+  mailto(
+    `mailto:${CONFIG.bugEmail}?subject=${encodeURIComponent('AllowList Bug Report')}` +
+    `&body=${encodeURIComponent('## Describe the bug\n\n(What happened? What did you expect?)\n\n## Steps to reproduce\n\n1. \n2. \n3. \n\n## Environment\n\n- AllowList v2.0\n---')}`
+  );
+}
+
 const QUOTES = [
   { text: 'The secret of getting ahead is getting started.', author: 'Mark Twain' },
   { text: 'Focus on being productive instead of busy.', author: 'Tim Ferriss' },
@@ -114,6 +143,12 @@ async function init() {
         }
       });
     }
+
+    // Feedback & bug buttons
+    const fbBtn = $('#blocked-feedback-btn');
+    const bugBtn = $('#blocked-bug-btn');
+    if (fbBtn) fbBtn.addEventListener('click', (e) => { e.preventDefault(); mailtoFeedback(); });
+    if (bugBtn) bugBtn.addEventListener('click', (e) => { e.preventDefault(); mailtoBug(); });
   } catch {
     // Fallback — page still looks good with static content
     const quote = QUOTES[0];

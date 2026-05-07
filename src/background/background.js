@@ -1,11 +1,9 @@
 import { STORAGE_KEYS, DEFAULT_ALLOWLIST_NAME } from '../shared/constants.js';
 import { AllowlistRepository } from '../utils/allowlist-repository.js';
-import { RulesEngine } from '../utils/rules-engine.js';
 import { InputClassifier, isUrlAllowed, getRegistrableDomainFromHost } from '../utils/classifier.js';
 import { Analytics } from '../utils/analytics.js';
 
 const repo = new AllowlistRepository();
-const rules = new RulesEngine();
 const classifier = new InputClassifier();
 const analytics = new Analytics();
 
