@@ -1,9 +1,11 @@
 import { STORAGE_KEYS, DEFAULT_ALLOWLIST_NAME } from '../shared/constants.js';
 import { AllowlistRepository } from '../utils/allowlist-repository.js';
 import { InputClassifier, isUrlAllowed, getRegistrableDomainFromHost } from '../utils/classifier.js';
+import { RulesEngine } from '../utils/rules-engine.js';
 import { Analytics } from '../utils/analytics.js';
 
 const repo = new AllowlistRepository();
+const rules = new RulesEngine();
 const classifier = new InputClassifier();
 const analytics = new Analytics();
 
@@ -37,12 +39,16 @@ function setupBlocking() {
 				if (cmd === 'toggle') {
 					const s = await repo.getState();
 					await repo.setEnabled(!s.enabled);
+					await rebuildFromCurrent();
 				} else if (cmd === 'enable') {
 					await repo.setEnabled(true);
+					await rebuildFromCurrent();
 				} else if (cmd === 'disable') {
 					await repo.setEnabled(false);
+					await rebuildFromCurrent();
 				} else if (cmd === 'set_list' && val) {
 					await repo.setCurrent(val);
+					await rebuildFromCurrent();
 				}
 			} catch (e) {
 				// Command failed silently
@@ -118,9 +124,12 @@ async function rebuildFromCurrent() {
 	const entries = state.allowlists[state.current] || [];
 
 	if (state.enabled) {
+		await rules.rebuildFor(entries);
 		await chrome.action.setBadgeText({ text: entries.length > 0 ? String(entries.length) : '' });
 		await chrome.action.setBadgeBackgroundColor({ color: '#3b82f6' });
 	} else {
+		const disabledMarker = Object.assign([], { __disabled__: true });
+		await rules.rebuildFor(disabledMarker);
 		await chrome.action.setBadgeText({ text: 'OFF' });
 		await chrome.action.setBadgeBackgroundColor({ color: '#6b7280' });
 	}
@@ -226,44 +235,52 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 				}
 				case 'set_current': {
 					await repo.setCurrent(msg.payload);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
 				case 'toggle': {
 					const state = await repo.getState();
 					await repo.setEnabled(!state.enabled);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true, enabled: !state.enabled });
 					break;
 				}
 				case 'set_enabled': {
 					await repo.setEnabled(!!msg.payload);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
 				case 'save_allowlist': {
 					const { name, entries } = msg.payload;
 					await repo.saveAllowlist(name, entries);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
 				case 'delete_allowlist': {
 					await repo.deleteAllowlist(msg.payload);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
 				case 'rename_allowlist': {
 					const { from, to } = msg.payload;
 					await repo.renameAllowlist(from, to);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
 				case 'add_entry_current': {
 					const result = await repo.addEntryToCurrent(msg.payload);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true, isDuplicate: result.isDuplicate });
 					break;
 				}
 				case 'remove_entry_current': {
 					await repo.removeEntryFromCurrent(msg.payload);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
@@ -271,6 +288,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 					const { from, to } = msg.payload || {};
 					if (!from || !to) throw new Error('Missing from/to');
 					await repo.updateEntryInCurrent(from, to);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}
@@ -286,6 +304,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 					const { name, entries } = msg.payload;
 					if (!Array.isArray(entries)) throw new Error('Invalid entries format');
 					await repo.saveAllowlist(name, entries);
+					await rebuildFromCurrent();
 					sendResponse({ ok: true });
 					break;
 				}

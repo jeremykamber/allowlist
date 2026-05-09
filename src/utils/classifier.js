@@ -1,13 +1,12 @@
+import { isTwoLevelSuffix } from './two-level-suffixes.js';
+
 function getRegistrableDomainFromHost(hostname) {
 	const host = String(hostname || '').toLowerCase();
 	const parts = host.split('.').filter(Boolean);
 	if (parts.length <= 2) return host;
-	const twoLevelSuffixes = new Set([
-		'co.uk', 'com.au', 'co.jp', 'co.in', 'com.br', 'co.kr', 'com.sg', 'com.cn', 'com.tw', 'com.mx', 'co.za'
-	]);
 	const last2 = parts.slice(-2).join('.');
 	const last3 = parts.slice(-3).join('.');
-	if (twoLevelSuffixes.has(last2)) {
+	if (isTwoLevelSuffix(last2)) {
 		return last3;
 	}
 	return last2;
@@ -19,7 +18,7 @@ export class InputClassifier {
 		if (!s) return null;
 
 		if (s.startsWith('.')) {
-			const tld = s.replace(/^\.+/, '');
+			const tld = s.replace(/^\.+/, '').toLowerCase();
 			if (!tld) return null;
 			return { type: 'tld', value: `.${tld}` };
 		}

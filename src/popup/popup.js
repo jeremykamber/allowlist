@@ -3,6 +3,8 @@
 //  Professional-grade extension UX with keyboard support, undo, and polish.
 // ═══════════════════════════════════════════════════════════════════════════════
 
+import { isTwoLevelSuffix } from '../utils/two-level-suffixes.js';
+
 const $ = (s) => document.querySelector(s);
 const $$ = (s, ctx) => Array.from((ctx || document).querySelectorAll(s));
 
@@ -182,12 +184,8 @@ async function processUrlCommand(cmd, value) {
         const parts = u.hostname.split('.').filter(Boolean);
         let domain = u.hostname;
         if (parts.length > 2) {
-          const twoLevel = new Set([
-            'co.uk', 'com.au', 'co.jp', 'co.in', 'com.br',
-            'co.kr', 'com.sg', 'com.cn', 'com.tw', 'com.mx', 'co.za',
-          ]);
           const last2 = parts.slice(-2).join('.');
-          domain = twoLevel.has(last2) ? parts.slice(-3).join('.') : last2;
+          domain = isTwoLevelSuffix(last2) ? parts.slice(-3).join('.') : last2;
         }
         await bg('add_entry_current', { type: 'domain', value: domain });
       }
@@ -614,31 +612,33 @@ function askForName(title = 'Name', defaultValue = '') {
 
     titleEl.textContent = title;
     input.value = defaultValue || '';
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-      input.focus();
-      input.select();
-    }, 100);
 
-    const cleanup = () => {
+    const close = (result) => {
+      if (observer) observer.disconnect();
       $('#input-name-save').onclick = null;
       $('#input-name-cancel').onclick = null;
       $('#input-name-close').onclick = null;
       form.onsubmit = null;
+      modal.classList.add('hidden');
+      resolve(result);
     };
 
     const onSave = () => {
       const v = input.value.trim();
-      cleanup();
-      modal.classList.add('hidden');
-      resolve(v || null);
+      close(v || null);
     };
 
-    const onCancel = () => {
-      cleanup();
-      modal.classList.add('hidden');
-      resolve(null);
-    };
+    const onCancel = () => close(null);
+
+    // Watch for external dismissal (background click, Escape key)
+    // which adds the .hidden class via global event handlers.
+    // Resolve the promise so the caller can continue.
+    const observer = new MutationObserver(() => {
+      if (modal.classList.contains('hidden')) {
+        close(null);
+      }
+    });
+    observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
 
     $('#input-name-save').onclick = onSave;
     $('#input-name-cancel').onclick = onCancel;
@@ -648,6 +648,12 @@ function askForName(title = 'Name', defaultValue = '') {
       e.preventDefault();
       onSave();
     };
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      input.focus();
+      input.select();
+    }, 100);
   });
 }
 
@@ -755,12 +761,8 @@ $('#quick-add-domain').addEventListener('click', async () => {
     const parts = host.split('.').filter(Boolean);
     let domain = host;
     if (parts.length > 2) {
-      const twoLevel = new Set([
-        'co.uk', 'com.au', 'co.jp', 'co.in', 'com.br',
-        'co.kr', 'com.sg', 'com.cn', 'com.tw', 'com.mx', 'co.za',
-      ]);
       const last2 = parts.slice(-2).join('.');
-      domain = twoLevel.has(last2) ? parts.slice(-3).join('.') : last2;
+      domain = isTwoLevelSuffix(last2) ? parts.slice(-3).join('.') : last2;
     }
     const r = await send('add_entry_current', { type: 'domain', value: domain });
     if (!r?.ok) { toast('Failed to add', { type: 'error' }); return; }

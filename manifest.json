@@ -49,7 +49,8 @@
   "permissions": [
     "storage",
     "tabs",
-    "webNavigation"
+    "webNavigation",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>"
